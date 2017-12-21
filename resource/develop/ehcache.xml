@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:noNamespaceSchemaLocation="ehcache.xsd" updateCheck="false"
+	monitoring="autodetect" dynamicConfig="true">
+
+	<diskStore path="/qsr/ehcache" />
+
+	<defaultCache maxEntriesLocalHeap="10000" eternal="false"
+		overflowToDisk="true" timeToIdleSeconds="200" timeToLiveSeconds="600"
+		transactionalMode="off">
+	</defaultCache>
+
+
+</ehcache>

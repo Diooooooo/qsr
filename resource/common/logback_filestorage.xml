@@ -1,0 +1,33 @@
+<included>
+
+	<appender name="FILESTORAGE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${logdir}/filestorage.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${logdir}/%d{yyyyMMdd}/filestorage.%i.log
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>[%date][%-5level][%logger{36}] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+
+	<logger name="com.qsr.sdk.serviceprovider.filestorage"
+		additivity="false">
+		<level value="info" />
+		<appender-ref ref="FILESTORAGE" />
+		<appender-ref ref="ERROR" />
+	</logger>
+	<logger name="com.qsr.sdk.service.FileStorageService"
+		additivity="false">
+		<level value="info" />
+		<appender-ref ref="FILESTORAGE" />
+		<appender-ref ref="ERROR" />
+	</logger>
+
+</included>

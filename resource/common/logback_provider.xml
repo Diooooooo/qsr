@@ -1,0 +1,25 @@
+<included>
+
+
+	<appender name="PROVIDER"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${logdir}/provider.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${logdir}/%d{yyyyMMdd}/provider.%i.log
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>[%date][%-5level][%logger{36}] %msg%n</pattern>
+		</encoder>
+	</appender>
+	<logger name="com.qsr.sdk.provider" additivity="true">
+		<level value="debug" />
+		<appender-ref ref="PROVIDER" />
+		<appender-ref ref="ERROR" />
+	</logger>
+
+</included>

@@ -1,0 +1,35 @@
+<included>
+
+
+	<appender name="TRANSFER"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${logdir}/transfer.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${logdir}/%d{yyyyMMdd}/transfer.%i.log
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>[%date][%-5level][%logger{36}] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+
+	<logger name="com.qsr.sdk.serviceprovider.transfer"
+		additivity="true">
+		<level value="info" />
+		<appender-ref ref="ERROR" />
+		<appender-ref ref="TRANSFER" />
+	</logger>
+	<logger name="com.qsr.sdk.service.TransferService"
+		additivity="true">
+		<level value="info" />
+		<appender-ref ref="ERROR" />
+		<appender-ref ref="TRANSFER" />
+	</logger>
+
+
+</included>

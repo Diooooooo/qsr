@@ -1,0 +1,47 @@
+<included>
+	<appender name="PAYMENT"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${logdir}/payment.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+			<fileNamePattern>${logdir}/%d{yyyyMMdd}/payment.%i.log
+			</fileNamePattern>
+			<timeBasedFileNamingAndTriggeringPolicy
+				class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>10MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+		</rollingPolicy>
+		<encoder>
+			<pattern>[%date][%-5level][%logger{36}] %msg%n</pattern>
+		</encoder>
+	</appender>
+
+	<logger name="com.qsr.sdk.controller.PaymentController"
+		additivity="false">
+		<level value="debug" />
+		<appender-ref ref="PAYMENT" />
+		<appender-ref ref="ERROR" />
+	</logger>
+
+	<logger name="com.qsr.sdk.controller.PaymentCallbackController"
+		additivity="false">
+		<level value="debug" />
+		<appender-ref ref="PAYMENT" />
+		<appender-ref ref="ERROR" />
+	</logger>
+
+	<logger name="com.qsr.sdk.controller.service.PaymentService"
+		additivity="false">
+		<level value="debug" />
+		<appender-ref ref="PAYMENT" />
+		<appender-ref ref="ERROR" />
+	</logger>
+	
+	<logger name="com.qsr.sdk.controller.serviceprovider.payment"
+		additivity="false">
+		<level value="debug" />
+		<appender-ref ref="PAYMENT" />
+		<appender-ref ref="ERROR" />
+	</logger>
+
+
+</included>

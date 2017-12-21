@@ -1,0 +1,6 @@
+<included>
+
+	<logger name="org.apache" additivity="true" level="error" />
+	<logger name="httpclient" additivity="true" level="error" />
+
+</included>

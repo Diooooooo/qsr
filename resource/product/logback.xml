@@ -1,0 +1,33 @@
+<configuration>
+
+
+	<timestamp key="bySecond" datePattern="yyyyMMdd'T'HH"
+		timeReference="contextBirth" />
+
+	<property name="logdir" value="/logs/api_log1" />
+
+
+
+
+	<include resource="common/logback_appender.xml" />
+	<include resource="common/logback_logger.xml" />
+
+
+
+
+	<include resource="common/logback_system.xml" />
+	<include resource="common/logback_payment.xml" />
+	<include resource="common/logback_transfer.xml" />
+
+
+
+
+
+
+	<root level="DEBUG">
+		<appender-ref ref="GENERAL" />
+		<appender-ref ref="ERROR" />
+		<!-- <appender-ref ref="STDOUT" /> -->
+	</root>
+
+</configuration>
