@@ -7,7 +7,6 @@ import com.qsr.sdk.component.cache.provider.mapcache.MapCacheProvider;
 import com.qsr.sdk.component.filestorage.provider.alioss.AliOssProvider;
 import com.qsr.sdk.component.payment.provider.alipay.AliPaymentProvider;
 import com.qsr.sdk.component.payment.provider.yhxf.YhxfProvider;
-import com.qsr.sdk.component.push.provider.apns4j.ApnsPushProvider;
 import com.qsr.sdk.component.push.provider.getxin.GetxinPushProvider;
 import com.qsr.sdk.component.ruleengine.provider.drools.DroolsProvider;
 import com.qsr.sdk.component.sms.provider.alidayu.DaYuProvider;
@@ -88,23 +87,11 @@ public class ComponentProviderManager {
 				.registerProvider().registerComponent(1).registerComponent(2)
 				.registerComponent(3);
 
-		//		ServiceProviderManager
-		//				.addServiceProvider(new WXMobileGameChannelThirdAccount());
-		//
-		//		ServiceProviderManager.addServiceProvider(new WeiXinAccount());
 		// Push服务提供商
 		ProviderBuilder.getProviderBuilder(new GetxinPushProvider())
 				.registerProvider().registerComponent();
 
-		ProviderBuilder.getProviderBuilder(new ApnsPushProvider())
-				.registerProvider().registerComponent();
-
 		// 短信验证提供商
-
-//		ProviderBuilder.getProviderBuilder(new DxtSmsProvider())
-//				.registerProvider().registerComponent();
-//		ProviderBuilder.getProviderBuilder(new MobSmsProvider())
-//				.registerProvider().registerComponent();
 		ProviderBuilder.getProviderBuilder(new DaYuProvider())
 				.registerProvider().registerComponent();
 
@@ -121,10 +108,10 @@ public class ComponentProviderManager {
 
 		// 存储提供商
 		ProviderBuilder.getProviderBuilder(new AliOssProvider())
-				.registerProvider()
-				.registerComponent(2, loadProperty("oss_2.properties"))
-				.registerComponent(3, loadProperty("oss_3.properties"))
-				.registerComponent(4, loadProperty("oss_4.properties"));
+				.registerProvider();
+//				.registerComponent(2, loadProperty("oss_2.properties"))
+//				.registerComponent(3, loadProperty("oss_3.properties"))
+//				.registerComponent(4, loadProperty("oss_4.properties"));
 
 		ProviderBuilder.getProviderBuilder(new DroolsProvider())
 				.registerProvider()
@@ -146,22 +133,6 @@ public class ComponentProviderManager {
 		ProviderBuilder.getProviderBuilder(new RedisByteStorageProvider())
 				.registerProvider()
 				.registerComponent(7, redisConfig);
-
-		// 本地消息队列提供商
-//		ProviderBuilder.getProviderBuilder(new LocalMsgQueueProvider())
-//				.registerProvider()
-//				.registerComponent(8, loadProperty("mq_local.properties"));
-
-		// 阿里云消息队列提供商
-//		ProviderBuilder.getProviderBuilder(new AliMnsProvider())
-//				.registerProvider()
-//				.registerComponent(9, loadProperty("alimns.properties"));
-
-
-		//		ProviderBuilder.getProviderBuilder(new RedisDataStorageProvider())
-		//				.registerProvider()
-		//				.registerComponent(1, loadProperty("redis.properties"));
-
 	}
 
 	public static Map<Object, Object> loadProperty(String filename) {

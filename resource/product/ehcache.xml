@@ -3,7 +3,7 @@
 	xsi:noNamespaceSchemaLocation="ehcache.xsd" updateCheck="false"
 	monitoring="autodetect" dynamicConfig="true">
 
-	<diskStore path="/skywalker/ehcache" />
+	<diskStore path="/qsr/ehcache" />
 
 	<defaultCache maxEntriesLocalHeap="10000" eternal="false"
 		overflowToDisk="true" timeToIdleSeconds="200" timeToLiveSeconds="600"
