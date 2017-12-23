@@ -8,16 +8,11 @@ import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.List;
 import java.util.Map;
 
 public class SeasonService extends Service {
 
     final static Logger logger = LoggerFactory.getLogger(SeasonService.class);
-
-    public List<Map<String, Object>> getSeasonListByLeagueId(String ids) throws ServiceException {
-        return record2list(Db.find("", ""));
-    }
 
     /**
      * 根据联赛Id获取赛程
@@ -30,26 +25,29 @@ public class SeasonService extends Service {
     public PageList<Map<String, Object>> getSeasonListBySeasonDateWithPage(
             int userId, int leagueId, int pageNumber, int pageSize)
             throws ServiceException {
-        String sql = "SELECT ta.team_name team_a, ta.team_icon a_icon, tb.team_name team_b, " +
-                "tb.team_icon b_icon, l.lea_name, DATE_FORMATE(ts.season_start_play_time,  play_time, " +
-                "ts.season_gameweek gameweek, ts.season_fs_a source_a, ts.season_fs_b source_b, " +
-                "tss.status_name, ts.season_id ";
+        String sql = "SELECT ta.team_name team_a, IFNULL(ta.team_icon, \"\") a_icon, tb.team_name team_b, " +
+                "IFNULL(tb.team_icon, \"\") b_icon, l.lea_name, " +
+//                "DATE_FORMATE(ts.season_start_play_time, \"%H:%m\") play_time, " +
+                "ts.season_start_play_time play_time, " +
+                "CONCAT(\"第\",ts.season_gameweek, \"轮\") gameweek, ts.season_fs_a source_a, ts.season_fs_b source_b, "+
+//                "tss.status_name, ts.season_id, DATE_FORMATE(ts.season_start_play_time, \"%m-%d\") play_year," +
+                "tss.status_name, ts.season_id, ts.season_start_play_time play_year," +
+                "ts.season_start_play_time play_month ";
+//                "DATE_FORMATE(ts.season_start_play_time, \"%Y-%m-%d\") play_month ";
         String from;
         PageList<Map<String, Object>> seasonList = null;
         try {
             switch (leagueId) {
                 case -2:
-                    from = "SELECT ta.team_name team_a, ta.team_icon a_icon, tb.team_name team_b, tb.team_icon b_icon, " +
-                            "l.lea_name, ts.season_start_play_time play_time, ts.season_gameweek gameweek, " +
-                            "ts.season_fs_a source_a, ts.season_fs_b source_b, tss.status_name, ts.season_id " +
-                            "  FROM qsr_team_season ts " +
+                    from = "  FROM qsr_team_season ts " +
                             "  INNER JOIN qsr_users_attention ua ON ua.target_id = ts.season_id " +
                             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
                             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
                             "  INNER JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
                             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
                             "  WHERE ua.user_id = ? " +
-                            "  AND ua.type_id = 1";
+                            "  AND ua.type_id = 1 AND tss.is_attention = 1 " +
+                            "  ORDER BY ua.createtime DESC";
                     seasonList = page2PageList(DbUtil.paginate(pageNumber, pageSize, sql, from, userId));
                     break;
                 case -1:
@@ -62,7 +60,7 @@ public class SeasonService extends Service {
                             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
                             "  WHERE ts.lea_id IN (1, 2, 3, 4, 5) " +
                             "  AND YEAR(ts.season_year) = YEAR(NOW()) " +
-                            "  ORDER BY ts.season_year, ts.season_gameweek ";
+                            "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
                     seasonList = page2PageList(DbUtil.paginate(pageNumber, pageSize, sql, from));
                     break;
                 default:
@@ -73,14 +71,50 @@ public class SeasonService extends Service {
                             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
                             "  WHERE ts.lea_id = ? " +
                             "  AND YEAR(ts.season_year) = YEAR(NOW()) " +
-                            "  ORDER BY ts.season_year, ts.season_gameweek ";
+                            "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
                     seasonList = page2PageList(DbUtil.paginate(pageNumber, pageSize, sql, from, leagueId));
                     break;
             }
-        } catch (Throwable t) {
-            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "读取赛程失败", t);
-        } finally {
             return seasonList;
+        } catch (Throwable t) {
+            logger.error("getSeasonListBySeasonDateWithPage was error, userId={}, leagueId={}, pageNumber={}, pageSize={}, exception={}", userId, leagueId, pageNumber, pageSize, t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "赛程加载失败", t);
+        }
+    }
+
+    /**
+     * 根据球队ID获取当年球队联赛信息
+     * @param teamId
+     * @param pageNumber
+     * @param pageSize
+     * @return
+     * @throws ServiceException
+     */
+    public PageList<Map<String, Object>> getSeasonListByTeamId(int teamId, int pageNumber, int pageSize)
+            throws ServiceException {
+        try {
+            String select = "SELECT ta.team_name team_a, IFNULL(ta.team_icon, \"\") a_icon, tb.team_name team_b, " +
+                    "IFNULL(tb.team_icon, \"\") b_icon, l.lea_name, " +
+//                    "DATE_FORMATE(ts.season_start_play_time, \"%H:%m\") play_time, " +
+                    "ts.season_start_play_time play_time, " +
+                    "CONCAT(\"第\",ts.season_gameweek, \"轮\") gameweek, ts.season_fs_a source_a, ts.season_fs_b source_b, "+
+//                    "tss.status_name, ts.season_id, DATE_FORMATE(ts.season_start_play_time, \"%m-%d\") play_year," +
+                    "tss.status_name, ts.season_id, ts.season_start_play_time play_year," +
+//                    "DATE_FORMATE(ts.season_start_play_time, \"%Y-%m-%d\") play_month ";
+                    "ts.season_start_play_time play_month ";
+            String from = "FROM qsr_team_season ts " +
+                    "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
+                    "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
+                    "  LEFT JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
+                    "  LEFT JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
+                    "  WHERE ts.season_team_a = ? OR ts.season_team_b = ? " +
+                    "  AND YEAR(ts.season_year) = YEAR(NOW()) " +
+                    "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
+            return page2PageList(DbUtil.paginate(pageNumber, pageSize, select, from, teamId, teamId));
+        } catch (Throwable t) {
+            logger.error("getSeasonListByTeamId was error. teamId={}, pageNumber={}, pageSize={}, exception={}", teamId
+            , pageNumber, pageSize, t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "赛程加载失败", t);
         }
     }
 
@@ -91,11 +125,30 @@ public class SeasonService extends Service {
      */
     public Map<String,Object> getSeasonInfo(int seasonId) throws ServiceException {
         try {
-
+            String sql = "SELECT l.lea_name AS leagueName, s.season_start_play_time playTime, t.team_name AS teamA, " +
+                    "  s.season_team_a as teamAId, qt.team_name AS teamB, s.season_team_b AS teamBId," +
+                    "  s.season_fs_a AS scoreA, s.season_fs_b AS scoreB, s.season_gameweek AS gameweek, " +
+                    "  tss.status_name AS statusName, " +
+                    "  CASE " +
+                    "    WHEN s.season_home_team_id = s.season_team_a THEN s.season_team_b " +
+                    "    WHEN s.season_home_team_id = s.season_team_b THEN s.season_team_b " +
+                    "    ELSE 0 " +
+                    "  END AS home_team, " +
+                    "  s.season_situation AS situation, s.season_analysis AS analysis, s.season_guess AS guess, " +
+                    "  s.season_odds AS odds, IFNULL(s.season_live, \"\")  AS live " +
+                    "FROM qsr_team_season s " +
+                    "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id " +
+                    "  INNER JOIN qsr_team t ON s.season_team_a = t.team_id " +
+                    "  INNER JOIN qsr_team qt ON qt.team_id = s.season_team_b " +
+                    "  INNER JOIN qsr_team_season_status tss ON tss.status_id = s.season_id " +
+                    "WHERE s.season_id = ?";
+            Map<String, Object> info = record2map(Db.findFirst(sql, seasonId));
+            if (null == info)
+                throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "参数不正确");
+            return info;
         } catch (Throwable t) {
-            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "读取赛事失败", t);
-        } finally {
-            return null;
+            logger.error("getSeasonInfo was error. seasonId={}, exception={}", seasonId, t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "赛事加载失败", t);
         }
     }
 }

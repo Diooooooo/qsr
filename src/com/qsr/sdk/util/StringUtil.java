@@ -8,6 +8,8 @@ public class StringUtil {
 
 	public static final String EMPTY_STRING = "";
 
+	public static final String NULL_STRING = null;
+
 	public static boolean isEmptyOrNull(String s) {
 		return s == null || s.length() == 0 || s.trim().length() == 0;
 	}

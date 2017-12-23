@@ -40,6 +40,8 @@ public class Config extends JFinalConfig {
 		me.add("/entry", EntryController.class);
 		me.add("/season", SeasonController.class);
 		me.add("/data", DataController.class);
+		me.add("/league", LeagueController.class);
+		me.add("/team", TeamController.class);
 	}
 
 	@Override

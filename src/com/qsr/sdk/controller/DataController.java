@@ -26,7 +26,7 @@ public class DataController extends WebApiController {
             SeasonService seasonService = this.getService(SeasonService.class);
             LeagueService leagueService = this.getService(LeagueService.class);
             DataService dataService = this.getService(DataService.class);
-            List<Map<String, Object>> leagues = leagueService.getLeagues();
+            List<Map<String, Object>> leagues = leagueService.getFiveLeagues();
             List<Map<String, Object>> datas = dataService.getDataList();
 //            PageList<Map<String, Object>> seasons = seasonService.getSeasonListByLeagueId(StringUtil.EMPTY_STRING);
             this.renderData();
