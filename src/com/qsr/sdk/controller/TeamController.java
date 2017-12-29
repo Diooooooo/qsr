@@ -56,7 +56,7 @@ public class TeamController extends WebApiController {
     public void getSeasonListByTeamId(){
         try {
             Fetcher f = this.fetch();
-            logger.debug("getSeasonListByTeamId params={}", f);
+            logger.debug("getSeasonListByTeamIdWithPage params={}", f);
             int teamId = f.i("teamId");
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
@@ -67,10 +67,10 @@ public class TeamController extends WebApiController {
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }
             SeasonService seasonService = this.getService(SeasonService.class);
-            PageList<Map<String, Object>> seasons = seasonService.getSeasonListByTeamId(teamId, pageNumber, pageSize);
+            PageList<Map<String, Object>> seasons = seasonService.getSeasonListByTeamIdWithPage(teamId, pageNumber, pageSize);
             this.renderData(seasons, SUCCESS);
         } catch (Throwable t) {
-            this.renderException("getSeasonListByTeamId", t);
+            this.renderException("getSeasonListByTeamIdWithPage", t);
         }
     }
 }

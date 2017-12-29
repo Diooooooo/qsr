@@ -20,7 +20,7 @@ public class TeamService extends Service {
      */
     public Map<String, Object> getTeamInfo(int teamId) throws ServiceException {
         try {
-            String sql = "SELECT t.team_id AS teamId, t.team_name AS teamName, IFNULL(t.team_icon, \"\") AS teamIcon, " +
+            String sql = "SELECT t.team_id AS teamId, t.team_name AS teamName, IFNULL(t.team_icon, \"\") AS teamIcon, "+
                     "  IFNULL(t.team_country, \"\") AS teamCountry, IFNULL(t.team_createdate, \"\") AS createDate, " +
                     "  IFNULL(t.team_city, \"\") AS teamCity, IFNULL(t.team_web, \"\") AS web, " +
                     "  IFNULL(t.team_email, \"\") AS email, IFNULL(t.team_addr, \"\") AS addr, " +
