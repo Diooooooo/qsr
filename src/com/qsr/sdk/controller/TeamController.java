@@ -15,7 +15,6 @@ import java.util.Map;
 
 public class TeamController extends WebApiController {
     final static Logger logger = LoggerFactory.getLogger(TeamController.class);
-    final static String SUCCESS = "成功";
     public TeamController() {
         super(logger);
     }
@@ -59,7 +58,7 @@ public class TeamController extends WebApiController {
             logger.debug("getSeasonListByTeamIdWithPage params={}", f);
             int teamId = f.i("teamId");
             int pageNumber = f.i("pageNumber", 1);
-            int pageSize = f.i("pageSize", 10);
+            int pageSize = f.i("pageSize", 5);
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             int userId;
             if (!StringUtil.isEmptyOrNull(sessionkey)) {
@@ -71,6 +70,35 @@ public class TeamController extends WebApiController {
             this.renderData(seasons, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSeasonListByTeamIdWithPage", t);
+        }
+    }
+
+    public void getSeasonListByTeamIdWithLength() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("getSeasonListByTeamIdWidthLength, params={}", f);
+            int teamId = f.i("teamId");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            SeasonService seasonService = this.getService(SeasonService.class);
+            List<Map<String, Object>> seasons = seasonService.getSeasonListByTeamIdWithFive(teamId);
+            this.renderData(seasons, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getSeasonListByTeamIdWithLength", t);
+        }
+    }
+
+    public void getSeasonListByVsTeamIdWithLength() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("getSeasonListByVsTeamIdWithLength params={}");
+            int teamA = f.i("teamA");
+            int teamB = f.i("teamB");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            SeasonService seasonService = this.getService(SeasonService.class);
+            List<Map<String, Object>> seasons = seasonService.getSeasonListByVsTeamIdWithFive(teamA, teamB);
+            this.renderData(seasons, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getSeasonListByVsTeamLength", t);
         }
     }
 }

@@ -35,7 +35,7 @@ public class UserController extends WebApiController {
 
 	        UserService userService = this.getService(UserService.class);
 	        userService.register(mobile, nickName, password, confirm, userType);
-	        this.renderData("成功");
+	        this.renderData(SUCCESS);
         } catch (Throwable e) {
 	        this.renderException("register", e);
         }
@@ -56,7 +56,7 @@ public class UserController extends WebApiController {
 			//更新信息
 			userService.modifyLog(userId, clientIp);
 			Map<String, Object> data = userService.getUserInfo(userId);
-			this.renderData(data, "成功");
+			this.renderData(data, SUCCESS);
 		} catch (Throwable e) {
 			this.renderException("login", e);
 		}
@@ -72,7 +72,7 @@ public class UserController extends WebApiController {
 
 	    	SmsService smsService = this.getService(SmsService.class);
 	    	smsService.verifyCode(mobile, verifyCode);
-	    	this.renderData("成功");
+	    	this.renderData(SUCCESS);
 		} catch (Throwable e) {
 	    	this.renderException("loginByVerifyCode", e);
 		}
@@ -87,7 +87,7 @@ public class UserController extends WebApiController {
 	        UserService userService = this.getService(UserService.class);
 	        int userId = userService.getUserIdBySessionKey(sessionkey);
 	        Map<String, Object> userInfo = userService.getUserInfo(userId);
-	        this.renderData(userInfo, "成功");
+	        this.renderData(userInfo, SUCCESS);
         } catch (Throwable e) {
 	        this.renderException("getUserProfile", e);
         }
@@ -121,7 +121,7 @@ public class UserController extends WebApiController {
             UserService userService = this.getService(UserService.class);
 	        int userId = userService.getUserIdBySessionKey(sessionkey);
 	        userService.modifyUserInfo(userId, nickName, content, fileId);
-	        this.renderData("成功");
+	        this.renderData(SUCCESS);
         } catch (Throwable e) {
 	        this.renderException("modifyUserInfo", e);
         }
@@ -133,7 +133,7 @@ public class UserController extends WebApiController {
 	        List<Map<String, Object>> list = new ArrayList<>();
             getList(list);
             Page<Map<String, Object>> pages = new Page(list, 1, 10, 1, 10);
-            this.renderData(pages, "成功");
+            this.renderData(pages, SUCCESS);
         } catch (Throwable e) {
 	        this.renderException("pageList", e);
         }
@@ -154,7 +154,7 @@ public class UserController extends WebApiController {
 	        logger.debug("list, params = {}", f);
 	        List<Map<String, Object>> list = new ArrayList<>();
             getList(list);
-            this.renderData(list, "成功");
+            this.renderData(list, SUCCESS);
         } catch (Throwable e ) {
 	        this.renderException("list", e);
         }
@@ -166,7 +166,7 @@ public class UserController extends WebApiController {
 	        logger.debug("exception, params={}", f);
 	        UserService userService = this.getService(UserService.class);
 	        userService.exception();
-	        this.renderData("成功");
+	        this.renderData(SUCCESS);
         } catch (Throwable e) {
 	        this.renderException("list", e);
         }
@@ -186,7 +186,7 @@ public class UserController extends WebApiController {
 			smsService.verifyCode(Constants.SMS_TYPE_RESET_PWD, mobile, verifyCode);
 			UserService userService = this.getService(UserService.class);
 			userService.resetPassword(mobile, newPassword, confirm);
-			this.renderData("成功");
+			this.renderData(SUCCESS);
 		} catch (Throwable e) {
 			this.renderException("resetPasswordByPhoneNum", e);
 		}
@@ -207,7 +207,7 @@ public class UserController extends WebApiController {
 				int fileId = fileStorageService.uploadFile(providerId, fileUrl, uploadFile);
 				uploadFile.delete();
 				userService.modifyHead(userId, fileId, fileUrl);
-				this.renderData("成功");
+				this.renderData(SUCCESS);
 			} else {
 				throw new IllegalArgumentException("需上传一张图片");
 			}

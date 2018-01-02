@@ -133,4 +133,6 @@ public class WebApiController extends Controller {
     protected <T extends Service> T getService(Class<T> clazz) {
         return ServiceManager.getService(clazz);
     }
+
+    protected final static String SUCCESS = "成功";
 }

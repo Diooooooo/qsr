@@ -29,7 +29,7 @@ public class DataController extends WebApiController {
             List<Map<String, Object>> leagues = leagueService.getFiveLeagues();
             List<Map<String, Object>> datas = dataService.getDataList();
 //            PageList<Map<String, Object>> seasons = seasonService.getSeasonListByLeagueId(StringUtil.EMPTY_STRING);
-            this.renderData();
+            this.renderData(SUCCESS);
         } catch (Throwable t) {
             this.renderException("home", t);
         }
@@ -40,7 +40,7 @@ public class DataController extends WebApiController {
             Fetcher f = this.fetch();
             DataService dataService = this.getService(DataService.class);
             List<Map<String, Object>> dataList = dataService.getDataList();
-            this.renderData(dataList, "成功");
+            this.renderData(dataList, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getDataList", t);
         }
@@ -51,7 +51,7 @@ public class DataController extends WebApiController {
             Fetcher f = this.fetch();
             DataService dataService = this.getService(DataService.class);
             Map<String, Object> info = dataService.getDataInfo();
-            this.renderData(info, "成功");
+            this.renderData(info, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getDataInfo", t);
         }

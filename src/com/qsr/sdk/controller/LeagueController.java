@@ -23,7 +23,7 @@ public class LeagueController extends WebApiController {
      *                  2   杯赛
      *                  3   所有赛事
      */
-    public void getLeagues() {
+    public void home() {
         try {
             Fetcher f = this.fetch();
             logger.debug("getLeagues params={}", f);
@@ -38,7 +38,7 @@ public class LeagueController extends WebApiController {
             } else {
                 leagues = leagueService.getAllLeagues();
             }
-            this.renderData(leagues,"成功");
+            this.renderData(leagues, SUCCESS);
         } catch (Throwable e) {
             this.renderException("getLeagues", e);
         }

@@ -11,6 +11,10 @@ import java.util.Map;
 public class DataService extends Service {
 
     final static Logger logger = LoggerFactory.getLogger(DataService.class);
+    final static String SELECT_LIST = "";
+    final static String SELECT_INFO = "";
+    final static String FROM_LIST = "";
+    final static String FROM_INFO = "";
 
     public List<Map<String, Object>> getDataList() throws ServiceException {
         return record2list(Db.find(""));
