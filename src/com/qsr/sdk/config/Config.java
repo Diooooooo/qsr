@@ -44,6 +44,7 @@ public class Config extends JFinalConfig {
 		me.add("/team", TeamController.class);
 		me.add("/banner", BannerController.class);
 		me.add("/esoterica", EsotericaController.class);
+		me.add("/attention", AttentionController.class);
 	}
 
 	@Override

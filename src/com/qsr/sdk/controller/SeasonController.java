@@ -67,4 +67,5 @@ public class SeasonController extends WebApiController {
             this.renderException("getSeasonInfo", t);
         }
     }
+
 }

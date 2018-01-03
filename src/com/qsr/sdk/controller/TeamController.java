@@ -101,4 +101,17 @@ public class TeamController extends WebApiController {
             this.renderException("getSeasonListByVsTeamLength", t);
         }
     }
+
+    public void getSeasonListByTeamIdWithYear() {
+        try {
+            Fetcher f = this.fetch();
+            int teamId = f.i("teamId");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            SeasonService seasonService = this.getService(SeasonService.class);
+            List<Map<String, Object>> seasons = seasonService.getSeasonListByTeamIdWithYear(teamId);
+            this.renderData(seasons, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getSeasonListByTeamIdWithYear", t);
+        }
+    }
 }
