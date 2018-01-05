@@ -4,6 +4,7 @@ import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.upload.UploadFile;
 import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.service.FileStorageService;
+import com.qsr.sdk.service.InformationService;
 import com.qsr.sdk.service.SmsService;
 import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.util.Constants;
@@ -213,6 +214,44 @@ public class UserController extends WebApiController {
 			}
 		} catch (Throwable e) {
 			this.renderException("modifyHead", e);
+		}
+	}
+
+	public void aboutUs() {
+		try {
+		    Fetcher f = this.fetch();
+		    logger.debug("aboutUs params={}", f);
+		    Map<String, Object> info = new HashMap<>();
+		    info.put("url", Env.getAboutUs());
+		    this.renderData(info, SUCCESS);
+		} catch (Throwable t) {
+			this.renderException("aboutUs", t);
+		}
+	}
+
+	public void information() {
+		try {
+			Fetcher f = this.fetch();
+			logger.debug("information", f);
+			Map<String, Object> information = new HashMap<>();
+			information.put("url", Env.getInformation());
+			this.renderData(information, SUCCESS);
+		} catch (Throwable t) {
+			this.renderException("information", t);
+		}
+	}
+
+	public void sendInformation() {
+		try {
+			Fetcher f = this.fetch();
+			logger.debug("sendInformation, params={}", f);
+			String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+			String information = f.s("information");
+			InformationService informationService = this.getService(InformationService.class);
+			informationService.information(information);
+			this.renderData(SUCCESS);
+		} catch (Throwable t) {
+			this.renderException("sendInformation", t);
 		}
 	}
 

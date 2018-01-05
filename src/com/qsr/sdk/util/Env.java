@@ -44,6 +44,7 @@ public class Env {
 
     private static long cacheTimeOut = -1;
     private static String deliveryManagerPhone;
+    private static String aboutUs;
 
     private static String[] real_ip_headers = null;
     private static long ruleCheckDuration = -1;
@@ -53,6 +54,7 @@ public class Env {
     private static List<String> ignore_promotion_keys;
     private static List<String> ignore_product_keys;
     private static List<String> ignore_device_imeis;
+    private static String information;
 
     public static String[] getRealIpHeaders() {
         if (real_ip_headers == null) {
@@ -311,5 +313,19 @@ public class Env {
             deliveryManagerPhone = parameter.s("delivery_manager_phone");
         }
         return deliveryManagerPhone;
+    }
+
+    public static String getAboutUs() {
+        if (null == aboutUs) {
+            aboutUs = parameter.s("about_us");
+        }
+        return aboutUs;
+    }
+
+    public static String getInformation() {
+        if (null == information) {
+            information = parameter.s("information");
+        }
+        return information;
     }
 }

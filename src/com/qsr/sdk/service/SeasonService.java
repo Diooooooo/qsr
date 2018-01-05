@@ -19,7 +19,7 @@ public class SeasonService extends Service {
             "tb.team_name team_b, IFNULL(tb.team_icon, \"\") b_icon, l.lea_name, " +
             "DATE_FORMAT(ts.season_start_play_time, \"%H:%m\") play_time, " +
             "ts.season_gameweek gameweek, ts.season_fs_a source_a, ts.season_fs_b source_b, " +
-            "tss.status_name, ts.season_id, DATE_FORMAT(ts.season_start_play_time, \"%y\") play_year," +
+            "tss.status_name, ts.season_id, DATE_FORMAT(ts.season_start_play_time, \"%Y\") play_year," +
             "DATE_FORMAT(ts.season_start_play_time, \"%m-%d\") play_month ";
     private final static String FROM_SEASON_BY_SEASON_DATE_WIth_USER = "  FROM qsr_team_season ts " +
                             "  INNER JOIN qsr_users_attention ua ON ua.target_id = ts.season_id " +
