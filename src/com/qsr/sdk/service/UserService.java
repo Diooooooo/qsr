@@ -45,7 +45,7 @@ public class UserService extends Service {
     public String login(String mobile, String password, String userType) throws ServiceException {
         String sql = "select u.sessionkey sessionkey from qsr_users u inner join qsr_users_type t on u.type_id = t.type_id " +
                 "where u.mobile = ? and u.passwordkey = ? and t.type_name = ? and u.activated = 1 and !(t.enabled = 0 or t.deleted = 1) = 1";
-        Record r = Db.findFirst(sql, mobile, Md5Util.digest(password), userType);
+        Record r = Db.findFirst(sql, mobile, Md5Util.digest(password+mobile), userType);
         if (null == r) {
             throw new ServiceException(getServiceName(), ErrorCode.NOT_EXIST_SERVICE_PROVIDER, "用户不存在");
         }
@@ -56,15 +56,15 @@ public class UserService extends Service {
         throw new ServiceException(getServiceName(), ErrorCode.ILLEGAL_EXCEPTION, "未知异常");
     }
 
-    public void register(String mobile, String nickName, String password, String confirm, String userType) throws ServiceException {
+    public void register(String mobile, String nickName, String password, String confirm, String userType, String ip) throws ServiceException {
         if (!password.equals(confirm)) {
             throw new ServiceException(getServiceName(), ErrorCode.CONFIRM, "两次密码输入不一致");
         }
-        String sql = "INSERT INTO qsr_users(type_id, mobile, passwordkey, nickname, sessionkey) SELECT t.type_id, i.mobile," +
-                " MD5(i.password), i.nickname, MD5(i.sessionkey) FROM (? mobile, ? nickname, ? userType, ? password, " +
-                "? sessionkey) i LEFT JOIN qsr_users_type t ON i.userType = t.type_name ";
+        String sql = "INSERT INTO qsr_users(type_id, mobile, passwordkey, nickname, sessionkey, last_ip) SELECT t.type_id, i.mobile," +
+                "MD5(i.password), i.nickname, MD5(i.mobile), i.ip FROM (SELECT ? as mobile, ? as nickname, ? as userType, ? as password, " +
+                "? as ip) i LEFT JOIN qsr_users_type t ON i.userType = t.type_name ";
         try {
-            Db.update(sql, mobile, nickName, userType, password + mobile, mobile+ LocalDate.now().toString());
+            Db.update(sql, mobile, nickName, userType, password + mobile, ip);
         } catch (Throwable e) {
             logger.error("register error. exception={}", e.getMessage());
             throw new ServiceException(getServiceName(), ErrorCode.USER_REGISTER_FAILED, "用户创建失败");

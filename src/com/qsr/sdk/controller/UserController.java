@@ -33,9 +33,10 @@ public class UserController extends WebApiController {
 	        String confirm = f.s("confirm");
 	        String nickName = f.s("nick_name", "");
 	        String userType = f.s("user_type", "qsr");
+	        String ip = this.getRemoteAddr();
 
 	        UserService userService = this.getService(UserService.class);
-	        userService.register(mobile, nickName, password, confirm, userType);
+	        userService.register(mobile, nickName, password, confirm, userType, ip);
 	        this.renderData(SUCCESS);
         } catch (Throwable e) {
 	        this.renderException("register", e);

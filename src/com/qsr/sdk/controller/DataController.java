@@ -57,4 +57,53 @@ public class DataController extends WebApiController {
         }
     }
 
+    public void getRankingGroup() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("getRankingGroup params={}", f);
+            DataService dataService = this.getService(DataService.class);
+            List<Map<String, Object>> datas = dataService.getDataGroup();
+            this.renderData(datas, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getRankingGroup", t);
+        }
+    }
+
+    public void getSeasonLotteryType() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("getSeasonLotteryType params={}", f);
+            this.renderData(SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getSeasonLotteryType", t);
+        }
+    }
+
+    public void getSeasons() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("getSeasons params={}", f);
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int leagueId = f.i("leagueId", 56);
+            DataService dataService = this.getService(DataService.class);
+            List<Map<String, Object>> seasons = dataService.getSeasons(leagueId);
+            this.renderData(seasons, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getSeasons", t);
+        }
+    }
+
+    public void getSeasonItem() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("getSeasonItem params = {}", f);
+            int leagueId = f.i("leagueId", 56);
+            DataService dataService = this.getService(DataService.class);
+            List<Map<String, Object>> datas = dataService.getSeasonItemWithSource(leagueId);
+            this.renderData(datas, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getSeasonItem", t);
+        }
+    }
+
 }
