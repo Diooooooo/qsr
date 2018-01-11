@@ -19,14 +19,14 @@ public class DataService extends Service {
     private final static String DATA_GROUP = "SELECT g.group_id, g.group_name FROM qsr_team_season_lottery_group g WHERE g.enabled = 1;";
     private final static String SEASON_LIST = "SELECT li.league_season season, t.team_name teamName, " +
             "  li.item_count count, li.item_win win, li.item_deuce deuce, li.item_lose lose, li.item_source source " +
-            "  FROM qsr_ranking_list_item li " +
+            "  FROM qsr_team_season_ranking_list_item li " +
             "  INNER JOIN qsr_league l ON l.lea_id = li.league_id " +
             "  INNER JOIN qsr_team t ON t.team_id = li.team_id " +
             "  WHERE li.league_id = ? " +
             "  GROUP BY li.league_season ";
     private final static String SEASON_LIST_ITEM = "SELECT t.team_id, t.team_name, t.team_icon, i.item_count, " +
             "  i.item_win, i.item_deuce, i.item_lose, i.item_source " +
-            "FROM qsr_ranking_list_item i " +
+            "FROM qsr_team_season_ranking_list_item i " +
             "  INNER JOIN qsr_team t ON i.team_id = t.team_id " +
             "  INNER JOIN qsr_ranking_list_type lt ON i.type_id = lt.type_id " +
             "  INNER JOIN qsr_ranking_list_group g ON g.group_id = lt.group_id " +
@@ -37,11 +37,21 @@ public class DataService extends Service {
 
 
     public List<Map<String, Object>> getDataList() throws ServiceException {
-        return record2list(Db.find(""));
+        try {
+            return record2list(Db.find(""));
+        } catch (Throwable t) {
+            logger.error("getDataList was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载数据失败", t);
+        }
     }
 
     public Map<String, Object> getDataInfo() throws ServiceException {
-        return record2map(Db.findFirst(""));
+        try {
+            return record2map(Db.findFirst(""));
+        } catch (Throwable t) {
+            logger.error("getDataInfo was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载数据失败", t);
+        }
     }
 
     public List<Map<String,Object>> getDataGroup() throws ServiceException {

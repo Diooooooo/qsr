@@ -23,8 +23,21 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_team_season s ON s.season_id = e.sea_id " +
             "  INNER JOIN qsr_team t ON t.team_id = s.season_team_a " +
             "  INNER JOIN qsr_team b ON b.team_id = s.season_team_b " +
-            "WHERE e.enabled = 1 AND e.status_id = 2 AND s.status_id = 4 AND e.is_open = 1 AND e.type_id = ?";
-    private static final String ESOTERICA_FROM_WITH_LEAGUE_ID = "";
+            "WHERE e.enabled = 1 AND e.status_id != 1 AND s.status_id = 4 AND e.is_open = 1 AND e.type_id = ? ORDER BY e.stick DESC, e.createtime DESC";
+    private static final String ESOTERICA_FROM_WITH_LEAGUE_ID = "FROM qsr_team_season_esoterica e " +
+            "  INNER JOIN qsr_team_season_esoterica_status ts ON e.status_id = ts.status_id " +
+            "  INNER JOIN qsr_team_season s ON s.season_id = e.sea_id " +
+            "  INNER JOIN qsr_team t ON t.team_id = s.season_team_a " +
+            "  INNER JOIN qsr_team b ON b.team_id = s.season_team_b " +
+            "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id " +
+            "  INNER JOIN qsr_league_country c ON l.country_id = c.country_id " +
+            "  WHERE c.country_id = ? AND s.status_id = 4 AND e.is_open = 1 AND e.status_id != 1 AND e.enabled = 1 ORDER BY e.stick DESC, e.createtime DESC ";
+    private static final String ESOTERICA_USER = "  FROM qsr_team_season_esoterica e " +
+            "  INNER JOIN qsr_team_season_esoterica_status ts ON e.status_id = ts.status_id " +
+            "  INNER JOIN qsr_team_season s ON s.season_id = e.sea_id " +
+            "  INNER JOIN qsr_team t ON t.team_id = s.season_team_a " +
+            "  INNER JOIN qsr_team b ON b.team_id = s.season_team_b " +
+            "  WHERE e.esoterica_author = ? AND s.status_id = 4 AND e.is_open = 1 AND e.status_id != 1 AND e.enabled = 1 ORDER BY e.stick DESC, e.createtime DESC";
 
     public PageList<Map<String, Object>> getEsotericaListByLeagueId(int pageNumber, int pageSize, int leagueId)
             throws ServiceException {
@@ -56,4 +69,12 @@ public class EsotericaService extends Service {
         }
     }
 
+    public PageList<Map<String,Object>> getEsotericaListByUserId(int pageNumber, int pageSize, int authorityId) throws ServiceException {
+        try {
+            return page2PageList(DbUtil.paginate(pageNumber, pageSize, ESOTERICA_SELECT, ESOTERICA_USER, authorityId));
+        } catch (Throwable t) {
+            logger.error("getEsotericaListByUserId was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载锦囊失败", t);
+        }
+    }
 }
