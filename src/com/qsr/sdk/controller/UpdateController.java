@@ -15,12 +15,22 @@ public class UpdateController extends WebApiController {
         super(logger);
     }
 
+    /**
+     * mobile_type
+     *              1   android
+     *              2   ios
+     *              3   wp
+     *              4   symbian
+     *              5   blackberry
+     *              6   yunos
+     *              7   other
+     */
     public void update() {
         try {
             Fetcher f = this.fetch();
-            int versionCode = f.i("version_code");
+            int mobileType = f.i("mobile_type");
             UpdateService updateService = this.getService(UpdateService.class);
-            Map<String, Object> info = updateService.update(versionCode);
+            Map<String, Object> info = updateService.update(mobileType);
             this.renderData(info, SUCCESS);
         } catch (Throwable t) {
             this.renderException("update", t);
