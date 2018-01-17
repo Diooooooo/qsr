@@ -10,7 +10,7 @@ public class FileStorageHelper {
 
 	public static FileStorage getFileStorage(int configId) throws ApiException {
 		FileStorage fileStorage = ComponentProviderManager.getService(FileStorage.class,
-				AliOssProvider.PROVIDER_ID, configId);
+				configId, configId);
 
 		if (fileStorage == null) {
 			throw new ApiException(ErrorCode.NOT_EXIST_SERVICE_PROVIDER, "不存在的存储服务");

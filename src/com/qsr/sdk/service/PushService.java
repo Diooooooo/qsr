@@ -72,7 +72,7 @@ public class PushService extends Service {
 		//		}
 		try {
 			return PushHelper
-					.pushMessage(providerId, pushUserId, message, type);
+					.pushMessage(providerId, pushUserId, message, type, 1);
 			//return push.pushSingleMessage(pushUserId, message, type);
 		} catch (ApiException e) {
 			throw new ServiceException(getServiceName(), e);
@@ -152,47 +152,52 @@ public class PushService extends Service {
 	public void pushMessage(int userId, int type, String message)
 			throws ServiceException {
 
-		String sql0 = "select pu.provider_id,pu.push_user_id from razor_user_pushuser pu "
-				+ "where pu.user_id=? ";
-		int providerId = 0;
-		String pushUserId = StringUtil.EMPTY_STRING;
-		Map<String, Object> data = record2map(Db.findFirst(sql0, userId));
-		int pushSuccessCount = 0;
-		int pushExceptionCode = 0;
-		String pushExceptionMessage = StringUtil.EMPTY_STRING;
-
 		try {
-			if (data == null) {
-				providerId = 0;
-				pushUserId = "";
-				throw new ApiException(ErrorCode.ILLEGAL_STATE, "用户还未绑定推送");
-			} else {
-				providerId = ParameterUtil.integerParam(data, "provider_id");
-				pushUserId = ParameterUtil.stringParam(data, "push_user_id");
-
-				pushSuccessCount = PushHelper.pushMessage(providerId,
-						pushUserId, message, type);
-
-				logger.debug("pushMessage:userId={},{}", userId, message);
-			}
-
+			PushHelper.pushMessage(2, null, message +", type=" + type, type, 2);
 		} catch (ApiException e) {
-			pushExceptionCode = e.getCode();
-			pushExceptionMessage = e.getMessage();
-			throw new ServiceException(getServiceName(), e);
-		} catch (Exception e) {
-			pushExceptionMessage = e.getMessage();
-			pushExceptionCode = ErrorCode.THIRD_SERVICE_EXCEPTIOIN;
-			throw new ServiceException(getServiceName(),
-					ErrorCode.THIRD_SERVICE_EXCEPTIOIN, "第三方服务提供异常", e);
-		} finally {
-			String sql = "insert razor_user_pushmessage(user_id,provider_id,push_user_id,push_messagetype,push_message,"
-					+ "push_success_count,push_exceptioncode,push_exceptionmessage,createtime) "
-					+ "values(?,?,?,?,?,?,?,?,now()) ";
-			Db.update(sql, userId, providerId, pushUserId, type, message,
-					pushSuccessCount, pushExceptionCode, pushExceptionMessage);
-
+		    throw new ServiceException(getServiceName(), ErrorCode.THIRD_SERVICE_EXCEPTIOIN, e.getMessage(), e);
 		}
+//		String sql0 = "select pu.provider_id,pu.push_user_id from razor_user_pushuser pu "
+//				+ "where pu.user_id=? ";
+//		int providerId = 0;
+//		String pushUserId = StringUtil.EMPTY_STRING;
+//		Map<String, Object> data = record2map(Db.findFirst(sql0, userId));
+//		int pushSuccessCount = 0;
+//		int pushExceptionCode = 0;
+//		String pushExceptionMessage = StringUtil.EMPTY_STRING;
+//
+//		try {
+//			if (data == null) {
+//				providerId = 0;
+//				pushUserId = "";
+//				throw new ApiException(ErrorCode.ILLEGAL_STATE, "用户还未绑定推送");
+//			} else {
+//				providerId = ParameterUtil.integerParam(data, "provider_id");
+//				pushUserId = ParameterUtil.stringParam(data, "push_user_id");
+//
+//				pushSuccessCount = PushHelper.pushMessage(providerId,
+//						pushUserId, message, type);
+//
+//				logger.debug("pushMessage:userId={},{}", userId, message);
+//			}
+//
+//		} catch (ApiException e) {
+//			pushExceptionCode = e.getCode();
+//			pushExceptionMessage = e.getMessage();
+//			throw new ServiceException(getServiceName(), e);
+//		} catch (Exception e) {
+//			pushExceptionMessage = e.getMessage();
+//			pushExceptionCode = ErrorCode.THIRD_SERVICE_EXCEPTIOIN;
+//			throw new ServiceException(getServiceName(),
+//					ErrorCode.THIRD_SERVICE_EXCEPTIOIN, "第三方服务提供异常", e);
+//		} finally {
+//			String sql = "insert razor_user_pushmessage(user_id,provider_id,push_user_id,push_messagetype,push_message,"
+//					+ "push_success_count,push_exceptioncode,push_exceptionmessage,createtime) "
+//					+ "values(?,?,?,?,?,?,?,?,now()) ";
+//			Db.update(sql, userId, providerId, pushUserId, type, message,
+//					pushSuccessCount, pushExceptionCode, pushExceptionMessage);
+//
+//		}
 
 	}
 

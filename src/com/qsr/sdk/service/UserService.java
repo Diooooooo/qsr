@@ -35,7 +35,7 @@ public class UserService extends Service {
         if (userId == 0) {
             return null;
         }
-        String sql = "SELECT u.sessionkey AS sessionkey, u.mobile AS mobile, u.nickname as nickname, " +
+        String sql = "SELECT u.sessionkey AS sessionkey, u.mobile AS mobile, u.nickname as nickname, TIMESTAMPDIFF(DAY, u.created, NOW()) AS active_day, " +
                 "u.head_img_url AS head_img, u.last_login AS last_login FROM qsr_users u WHERE u.id = ?";
         Map<String, Object> info = record2map(Db.findFirst(sql, userId));
         markString(info, "mobile", 2);
@@ -88,25 +88,12 @@ public class UserService extends Service {
         }
     }
 
-    public void modifyUserInfo(int userId, String nickName, String content, int fileId) throws ServiceException {
-        String sql = "UPDATE qsr_users u ";
+    public void modifyUserInfo(int userId, String nickName, String content, int fileId, String sex, String birthday)
+            throws ServiceException {
+        String sql = "UPDATE qsr_users u SET u.head_img_file_id = ?, u.nickname = ?, u.user_sex = ?, u.birthday = ?";
         String where = " WHERE u.id = ?";
         try {
-            if (StringUtil.isEmptyOrNull(nickName) && fileId != 0) {
-                sql += " SET u.head_img_file_id = ? ";
-                sql += where;
-                Db.update(sql, fileId, userId);
-            }
-            if (!StringUtil.isEmptyOrNull(nickName) && fileId != 0) {
-                sql += " SET u.nickname = ?, u.head_img_file_id = ?";
-                sql += where;
-                Db.update(sql, nickName, fileId, userId);
-            }
-            if (!StringUtil.isEmptyOrNull(nickName) && fileId == 0) {
-                sql += " SET u.nickname = ? ";
-                sql += where;
-                Db.update(sql, nickName, userId);
-            }
+            Db.update(sql + where, fileId, nickName, sex, birthday, userId);
         } catch (Throwable e) {
             throw new ServiceException(getServiceName(), ErrorCode.DATA_SAVA_FAILED, "修改信息失败");
         }

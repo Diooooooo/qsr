@@ -28,7 +28,7 @@ public class UpdateController extends WebApiController {
     public void update() {
         try {
             Fetcher f = this.fetch();
-            int mobileType = f.i("mobile_type");
+            int mobileType = f.i("mobile_type", 1);
             UpdateService updateService = this.getService(UpdateService.class);
             Map<String, Object> info = updateService.update(mobileType);
             this.renderData(info, SUCCESS);

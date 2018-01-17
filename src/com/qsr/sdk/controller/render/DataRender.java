@@ -44,6 +44,7 @@ public class DataRender extends Render {
 		try {
 			response.setHeader("Pragma", "no-cache"); // HTTP/1.0 caches might  not implement  Cache-Control and  might only implement  Pragma: no-cache
 			response.setHeader("Cache-Control", "no-cache");
+			response.setHeader("Access-Control-Allow-Origin", "*");
 			response.setDateHeader("Expires", 0);
 
 			response.setContentType(forIE ? contentTypeForIE : contentType);

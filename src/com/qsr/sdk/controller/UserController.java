@@ -101,6 +101,8 @@ public class UserController extends WebApiController {
 	        logger.debug("modifyUserInfo, params={}", f);
 	        List<String> imgs = Arrays.asList("head_img");
 	        String sessionkey = f.s("sessionkey");
+	        String sex = f.s("user_sex", StringUtil.NULL_STRING);
+	        String birthday = f.s("birthday", StringUtil.NULL_STRING);
 	        String nickName = f.s("nick_name", StringUtil.EMPTY_STRING);
 	        String content = f.s("content", StringUtil.EMPTY_STRING);
 
@@ -121,8 +123,10 @@ public class UserController extends WebApiController {
 	            file.delete();
             }
             UserService userService = this.getService(UserService.class);
+	        birthday = StringUtil.isEmptyOrNull(birthday) ? StringUtil.NULL_STRING : birthday;
+	        sex = StringUtil.isEmptyOrNull(sex) ? StringUtil.NULL_STRING : sex;
 	        int userId = userService.getUserIdBySessionKey(sessionkey);
-	        userService.modifyUserInfo(userId, nickName, content, fileId);
+	        userService.modifyUserInfo(userId, nickName, content, fileId, sex, birthday);
 	        this.renderData(SUCCESS);
         } catch (Throwable e) {
 	        this.renderException("modifyUserInfo", e);

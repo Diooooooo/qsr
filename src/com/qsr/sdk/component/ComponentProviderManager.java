@@ -5,9 +5,12 @@ import com.qsr.sdk.component.bytestorage.provider.redis.RedisByteStorageProvider
 import com.qsr.sdk.component.cache.provider.ehcache.EhcacheProvider;
 import com.qsr.sdk.component.cache.provider.mapcache.MapCacheProvider;
 import com.qsr.sdk.component.filestorage.provider.alioss.AliOssProvider;
+import com.qsr.sdk.component.filestorage.provider.local.LocalProvider;
+import com.qsr.sdk.component.im.provider.JImProvider;
 import com.qsr.sdk.component.payment.provider.alipay.AliPaymentProvider;
 import com.qsr.sdk.component.payment.provider.yhxf.YhxfProvider;
 import com.qsr.sdk.component.push.provider.getxin.GetxinPushProvider;
+import com.qsr.sdk.component.push.provider.jPush.JPushProvider;
 import com.qsr.sdk.component.ruleengine.provider.drools.DroolsProvider;
 import com.qsr.sdk.component.sms.provider.alidayu.DaYuProvider;
 import com.qsr.sdk.component.stats.provider.redis.RedisStatsProvider;
@@ -91,6 +94,9 @@ public class ComponentProviderManager {
 		ProviderBuilder.getProviderBuilder(new GetxinPushProvider())
 				.registerProvider().registerComponent();
 
+		ProviderBuilder.getProviderBuilder(new JPushProvider()).registerProvider()
+                .registerComponent(2, loadProperty("jpush.properties"));
+
 		// 短信验证提供商
 		ProviderBuilder.getProviderBuilder(new DaYuProvider())
 				.registerProvider().registerComponent();
@@ -107,8 +113,8 @@ public class ComponentProviderManager {
 				.registerProvider().registerComponent();
 
 		// 存储提供商
-		ProviderBuilder.getProviderBuilder(new AliOssProvider())
-				.registerProvider();
+		ProviderBuilder.getProviderBuilder(new AliOssProvider()).registerProvider().registerComponent(2, loadProperty("oss_2.properties"));
+		ProviderBuilder.getProviderBuilder(new LocalProvider()).registerProvider().registerComponent();
 //				.registerComponent(2, loadProperty("oss_2.properties"))
 //				.registerComponent(3, loadProperty("oss_3.properties"))
 //				.registerComponent(4, loadProperty("oss_4.properties"));
@@ -116,6 +122,8 @@ public class ComponentProviderManager {
 		ProviderBuilder.getProviderBuilder(new DroolsProvider())
 				.registerProvider()
 				.registerComponent(1, null);
+
+		ProviderBuilder.getProviderBuilder(new JImProvider()).registerProvider().registerComponent(1, loadProperty("jim.properties"));
 
 		Map<Object, Object> redisConfig = loadProperty("redis.properties");
 
