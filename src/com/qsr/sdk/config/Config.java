@@ -48,6 +48,7 @@ public class Config extends JFinalConfig {
 		me.add("/update", UpdateController.class);
 		me.add("/ranking", RankingController.class);
 		me.add("/test", TestController.class);
+		me.add("/im", MessageController.class);
 	}
 
 	@Override

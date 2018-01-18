@@ -95,7 +95,7 @@ public class ComponentProviderManager {
 				.registerProvider().registerComponent();
 
 		ProviderBuilder.getProviderBuilder(new JPushProvider()).registerProvider()
-                .registerComponent(2, loadProperty("jpush.properties"));
+                .registerComponent(2, loadProperty("jiguang.properties"));
 
 		// 短信验证提供商
 		ProviderBuilder.getProviderBuilder(new DaYuProvider())
@@ -123,7 +123,8 @@ public class ComponentProviderManager {
 				.registerProvider()
 				.registerComponent(1, null);
 
-		ProviderBuilder.getProviderBuilder(new JImProvider()).registerProvider().registerComponent(1, loadProperty("jim.properties"));
+		ProviderBuilder.getProviderBuilder(new JImProvider()).registerProvider()
+				.registerComponent(1, loadProperty("jiguang.properties"));
 
 		Map<Object, Object> redisConfig = loadProperty("redis.properties");
 

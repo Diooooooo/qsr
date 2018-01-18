@@ -44,8 +44,8 @@ public class UserService extends Service {
 
     public String login(String mobile, String password, String userType) throws ServiceException {
         String sql = "select u.sessionkey sessionkey from qsr_users u inner join qsr_users_type t on u.type_id = t.type_id " +
-                "where u.mobile = ? and u.passwordkey = ? and t.type_name = ? and u.activated = 1 and !(t.enabled = 0 or t.deleted = 1) = 1";
-        Record r = Db.findFirst(sql, mobile, Md5Util.digest(password+mobile), userType);
+                "where u.mobile = ? AND u.passwordkey = md5(?)and t.type_name = ? and u.activated = 1 and !(t.enabled = 0 or t.deleted = 1) = 1";
+        Record r = Db.findFirst(sql, mobile, password+mobile, userType);
         if (null == r) {
             throw new ServiceException(getServiceName(), ErrorCode.NOT_EXIST_SERVICE_PROVIDER, "用户不存在");
         }

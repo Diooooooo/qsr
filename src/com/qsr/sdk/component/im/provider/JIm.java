@@ -5,6 +5,7 @@ import cn.jiguang.common.resp.APIRequestException;
 import cn.jmessage.api.JMessageClient;
 import cn.jmessage.api.common.model.message.MessageBody;
 import cn.jmessage.api.common.model.message.MessagePayload;
+import cn.jmessage.api.message.MessageType;
 import com.qsr.sdk.component.AbstractComponent;
 import com.qsr.sdk.component.Provider;
 import com.qsr.sdk.component.im.Im;
@@ -28,15 +29,15 @@ public class JIm extends AbstractComponent implements Im {
         APP_ID = p.s("app_id");
         APP_KEY = p.s("app_key");
         MASTER_SECERT = p.s("master_secert");
-        CHANNEL = p.s("channel");
-        client = new JMessageClient(MASTER_SECERT, APP_KEY);
+        CHANNEL = p.s("push_channel");
+        client = new JMessageClient(APP_KEY, MASTER_SECERT);
     }
 
     @Override
     public void sendSignMessage(String targetId, String fromId, String message, int type) throws RuntimeException {
         try {
             MessageBody mb = MessageBody.newBuilder().setText(message).build();
-            MessagePayload mp = MessagePayload.newBuilder().setTargetId(targetId).setMessageBody(mb).setFromId(fromId).build();
+            MessagePayload mp = MessagePayload.newBuilder().setVersion(1).setTargetId(targetId).setTargetType(targetId).setMessageBody(mb).setMessageType(MessageType.TEXT).setFromId(fromId).setFromType(fromId).build();
             client.sendMessage(mp);
         } catch (APIConnectionException e) {
             logger.error("JIm was error, exception = {}", e);

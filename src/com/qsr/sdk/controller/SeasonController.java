@@ -28,7 +28,7 @@ public class SeasonController extends WebApiController {
     public void home() {
         try {
             Fetcher f = this.fetch();
-            logger.debug("home params={}", f);
+            logger.debug("season home params={}", f);
             int id = f.i("league_id", 0);
             int pageNumber = f.i("page_number", 1);
             int pageSize = f.i("page_size", 10);
@@ -40,7 +40,7 @@ public class SeasonController extends WebApiController {
             }
             SeasonService seasonService = this.getService(SeasonService.class);
             PageList<Map<String, Object>> seasons = seasonService.getSeasonListBySeasonDateWithPage(userId, id, pageNumber, pageSize);
-            this.renderData(seasons, "成功");
+            this.renderData(seasons, SUCCESS);
         } catch (Throwable t) {
             this.renderException("home", t);
         }
