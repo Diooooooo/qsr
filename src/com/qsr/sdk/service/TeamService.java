@@ -25,7 +25,7 @@ public class TeamService extends Service {
                     "  IFNULL(t.team_city, \"\") AS teamCity, IFNULL(t.team_web, \"\") AS web, " +
                     "  IFNULL(t.team_email, \"\") AS email, IFNULL(t.team_addr, \"\") AS addr, " +
                     "  IFNULL(t.team_honor, \"\") AS honor, IFNULL(t.team_home, \"\") AS home, " +
-                    "  IFNULL(t.team_best, \"\") AS best " +
+                    "  IFNULL(t.team_best, \"\") AS best, IFNULL(t.team_price, \"\") AS price " +
                     "FROM qsr_team t WHERE t.team_id = ?";
             return record2map(Db.findFirst(sql, teamId));
         } catch (Throwable t) {

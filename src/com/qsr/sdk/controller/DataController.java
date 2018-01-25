@@ -98,8 +98,9 @@ public class DataController extends WebApiController {
             Fetcher f = this.fetch();
             logger.debug("getSeasonItem params = {}", f);
             int leagueId = f.i("leagueId", 56);
+            String year = f.s("year", "2018");
             DataService dataService = this.getService(DataService.class);
-            List<Map<String, Object>> datas = dataService.getSeasonItemWithSource(leagueId);
+            List<Map<String, Object>> datas = dataService.getSeasonItemWithSource(leagueId, year);
             this.renderData(datas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSeasonItem", t);
