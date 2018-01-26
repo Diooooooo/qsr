@@ -17,20 +17,19 @@ public class DataService extends Service {
     private final static String FROM_LIST = "";
     private final static String FROM_INFO = "";
     private final static String DATA_GROUP = "SELECT g.group_id, g.group_name FROM qsr_team_season_lottery_group g WHERE g.enabled = 1;";
-    private final static String SEASON_LIST = "SELECT li.league_year season, t.team_name teamName, " +
-            "  li.item_count count, li.item_win win, li.item_deuce deuce, li.item_lose lose, li.item_source source " +
+    private final static String SEASON_LIST = "SELECT CONCAT(YEAR(li.league_year), '/', SUBSTRING(DATE_FORMAT(li.league_year, '%Y') + 1, 3)) season, YEAR(li.league_year) now_year " +
             "  FROM qsr_team_season_ranking_list_item li " +
             "  INNER JOIN qsr_league l ON l.lea_id = li.league_id " +
             "  INNER JOIN qsr_team t ON t.team_id = li.team_id " +
             "  WHERE li.league_id = ? " +
-            "  GROUP BY li.league_year ";
+            "  GROUP BY li.league_year ORDER BY li.league_year DESC";
     private final static String SEASON_LIST_ITEM = "SELECT t.team_id, t.team_name, t.team_icon, i.item_count, " +
-            "  i.item_win, i.item_deuce, i.item_lose, i.item_source " +
+            "  i.item_vicotry, i.item_deuce, i.item_lose, i.item_in, i.item_out, i.item_source " +
             "FROM qsr_team_season_ranking_list_item i " +
             "  INNER JOIN qsr_team t ON i.team_id = t.team_id " +
             "  INNER JOIN qsr_team_season_ranking_list_type lt ON i.type_id = lt.type_id " +
             "  INNER JOIN qsr_team_season_ranking_list_group g ON g.group_id = lt.group_id " +
-            "WHERE i.league_id = ? AND g.group_id = ? AND YEAR(i.league_year) = YEAR(?) " +
+            "WHERE i.league_id = ? AND g.group_id = ? AND YEAR(i.league_year) = YEAR(STR_TO_DATE(?, '%Y')) " +
             "ORDER BY i.item_source DESC;";
 
     private final static int RANKING_GROUP_SOURCE = 1;
