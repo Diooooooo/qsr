@@ -2,12 +2,12 @@ package com.qsr.sdk.controller;
 
 import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.lang.PageList;
-import com.qsr.sdk.service.SeasonService;
-import com.qsr.sdk.service.UserService;
+import com.qsr.sdk.service.*;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Map;
 
 public class SeasonController extends WebApiController {
@@ -90,9 +90,73 @@ public class SeasonController extends WebApiController {
             }
             SeasonService seasonService = this.getService(SeasonService.class);
             Map<String, Object> seasonInfo = seasonService.getSeasonInfo(seasonId);
-            this.renderData(seasonInfo, "成功");
+            this.renderData(seasonInfo, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSeasonInfo", t);
+        }
+    }
+
+    /**
+     * 获取事件
+     */
+    public void getEvent() {
+        try {
+            Fetcher f = this.fetch();
+            int seasonId = f.i("season_id");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            EventService eventService = this.getService(EventService.class);
+            List<Map<String, Object>> maps = eventService.getEvents(seasonId);
+            this.renderData(maps, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getEvents", t);
+        }
+    }
+
+    /**
+     * 技术分析
+     */
+    public void getTechnique() {
+        try {
+            Fetcher f = this.fetch();
+            int seasonId = f.i("season_id");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            TechniqueService techniqueService = this.getService(TechniqueService.class);
+            List<Map<String, Object>> maps = techniqueService.getTechniques(seasonId);
+            this.renderData(maps, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getTechnique", t);
+        }
+    }
+
+    /**
+     * 阵型及阵容
+     */
+    public void getPlan() {
+        try {
+            Fetcher f = this.fetch();
+            int seasonId = f.i("season_id");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            PlanService planService = this.getService(PlanService.class);
+            List<Map<String, Object>> maps = planService.getPlans(seasonId);
+            this.renderData(maps, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getPlan", t);
+        }
+    }
+
+    /**
+     * 盘口及赔率
+     */
+    public void getLottery() {
+        try {
+            Fetcher f = this.fetch();
+            int seasonId = f.i("season_id");
+            String sessionkey = f.s("seasionkey", StringUtil.NULL_STRING);
+            LotteryService lotteryService = this.getService(LotteryService.class);
+            List<Map<String, Object>> maps = lotteryService.getLotteries(seasonId);
+            this.renderData(maps, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getLotteries", t);
         }
     }
 

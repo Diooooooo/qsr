@@ -3,12 +3,10 @@ package com.qsr.sdk.controller;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.upload.UploadFile;
 import com.qsr.sdk.controller.fetcher.Fetcher;
-import com.qsr.sdk.service.FileStorageService;
-import com.qsr.sdk.service.InformationService;
-import com.qsr.sdk.service.SmsService;
-import com.qsr.sdk.service.UserService;
+import com.qsr.sdk.service.*;
 import com.qsr.sdk.util.Constants;
 import com.qsr.sdk.util.Env;
+import com.qsr.sdk.util.Md5Util;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +33,8 @@ public class UserController extends WebApiController {
 	        String userType = f.s("user_type", "qsr");
 	        String ip = this.getRemoteAddr();
 
+			MessageService messageService = this.getService(MessageService.class);
+			messageService.registerUser(Md5Util.digest(mobile), Md5Util.digest(mobile), StringUtil.NULL_STRING, nickName);
 	        UserService userService = this.getService(UserService.class);
 	        userService.register(mobile, nickName, password, confirm, userType, ip);
 	        this.renderData(SUCCESS);

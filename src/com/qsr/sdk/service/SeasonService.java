@@ -17,7 +17,7 @@ public class SeasonService extends Service {
     private final static String SELECT_SEASON_HISTOR = "SELECT ta.team_name team_a, ta.team_id as team_a_id, " +
             "tb.team_id as team_b_id, IFNULL(ta.team_icon, \"\") a_icon, " +
             "tb.team_name team_b, IFNULL(tb.team_icon, \"\") b_icon, l.lea_name, " +
-            "DATE_FORMAT(ts.season_start_play_time, \"%H:%m\") play_time, " +
+            "DATE_FORMAT(ts.season_start_play_time, \"%H:%i\") play_time, " +
             "ts.season_gameweek gameweek, ts.season_fs_a source_a, ts.season_fs_b source_b, " +
             "tss.status_name, tss.status_id, ts.season_id, DATE_FORMAT(ts.season_start_play_time, \"%Y\") play_year," +
             "DATE_FORMAT(ts.season_start_play_time, \"%m-%d\") play_month ";
@@ -99,7 +99,7 @@ public class SeasonService extends Service {
             "    ELSE 0 " +
             "  END AS home_team, " +
             "  s.season_situation AS situation, s.season_analysis AS analysis, s.season_guess AS guess, " +
-            "  s.season_odds AS odds, IFNULL(s.season_live, \"\")  AS live " +
+            "  s.season_odds AS odds, IFNULL(s.season_live, \"\")  AS live, s.self_chatroom_id AS self, s.chatroom_id " +
             "FROM qsr_team_season s " +
             "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id " +
             "  INNER JOIN qsr_team t ON s.season_team_a = t.team_id " +

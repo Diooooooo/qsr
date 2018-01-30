@@ -1,7 +1,6 @@
 package com.qsr.sdk.controller;
 
 import com.qsr.sdk.controller.fetcher.Fetcher;
-import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.service.DataService;
 import com.qsr.sdk.service.LeagueService;
 import com.qsr.sdk.service.SeasonService;
@@ -9,6 +8,7 @@ import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -23,13 +23,14 @@ public class DataController extends WebApiController {
     public void home() {
         try {
             Fetcher f = this.fetch();
+            int leagueId = f.i("league_id");
             SeasonService seasonService = this.getService(SeasonService.class);
             LeagueService leagueService = this.getService(LeagueService.class);
             DataService dataService = this.getService(DataService.class);
             List<Map<String, Object>> leagues = leagueService.getFiveLeagues();
             List<Map<String, Object>> datas = dataService.getDataList();
-//            PageList<Map<String, Object>> seasons = seasonService.getSeasonListByLeagueId(StringUtil.EMPTY_STRING);
-            this.renderData(SUCCESS);
+            List<Map<String, Object>> seasons = seasonService.getSeasonListByLeagueId(leagueId);
+            this.renderData(seasons, SUCCESS);
         } catch (Throwable t) {
             this.renderException("home", t);
         }
@@ -98,7 +99,7 @@ public class DataController extends WebApiController {
             Fetcher f = this.fetch();
             logger.debug("getSeasonItem params = {}", f);
             int leagueId = f.i("leagueId", 56);
-            String year = f.s("year", "2018");
+            String year = f.s("year", String.valueOf(LocalDate.now().getYear()));
             DataService dataService = this.getService(DataService.class);
             List<Map<String, Object>> datas = dataService.getSeasonItemWithSource(leagueId, year);
             this.renderData(datas, SUCCESS);

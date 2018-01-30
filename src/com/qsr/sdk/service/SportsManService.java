@@ -14,8 +14,9 @@ public class SportsManService extends Service {
 
     public List<Map<String, Object>> getSportsManByTeamId(int teamId) throws ServiceException {
         try {
-            String sql = "SELECT s.sports_id, s.sports_name as sportsName, s.sports_number AS sportsNumber, IFNULL(s.sports_price, 0) AS sports_price, " +
-                    "  sr.role_name AS location, IFNULL(s.sports_country, \"\") AS sportsCountry, " +
+            String sql = "SELECT s.sports_id, s.sports_name as sportsName, s.sports_number AS sportsNumber, " +
+                    "  IFNULL(s.sports_price, 0) AS sports_price, " +
+                    "  sr.role_name AS location, sr.role_id, IFNULL(s.sports_country, \"\") AS sportsCountry, " +
                     "  IFNULL(s.sports_img, \"\") AS sportsImg, IFNULL(s.sports_birthday, \"\") AS sportsBirthday, " +
                     "  IFNULL(s.sports_stature, \"\") as sportsStature, IFNULL(s.sports_weight, \"\") AS sportsWeight "+
                     "  FROM qsr_team_sportsman_relation r " +

@@ -55,6 +55,7 @@ public class Env {
     private static List<String> ignore_product_keys;
     private static List<String> ignore_device_imeis;
     private static String information;
+    private static String chatRoom;
 
     public static String[] getRealIpHeaders() {
         if (real_ip_headers == null) {
@@ -327,5 +328,12 @@ public class Env {
             information = parameter.s("information");
         }
         return information;
+    }
+
+    public static String getChatRoom() {
+        if (null == chatRoom) {
+            chatRoom = parameter.s("chat_room");
+        }
+        return chatRoom;
     }
 }
