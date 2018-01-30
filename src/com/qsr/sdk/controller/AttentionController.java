@@ -36,8 +36,8 @@ public class AttentionController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             String sessionkey = f.s("sessionkey");
-            int typeId = f.i("typeId");
-            int causeId = f.i("causeType");
+            int typeId = f.i("type");
+            int causeId = f.i("causeId");
             UserService userService = this.getService(UserService.class);
             int userId = userService.getUserIdBySessionKey(sessionkey);
             AttentionService attentionService = this.getService(AttentionService.class);
@@ -56,7 +56,8 @@ public class AttentionController extends WebApiController {
             UserService userService = this.getService(UserService.class);
             int userId = userService.getUserIdBySessionKey(sessionkey);
             AttentionService attentionService = this.getService(AttentionService.class);
-            attentionService.delAttentionWithId(attentionId, userId);
+            attentionService.delAttentionWithId(attentionId);
+            this.renderData(SUCCESS);
         } catch (Throwable t) {
             this.renderException("delAttention was error. exception = {}", t);
         }
@@ -67,7 +68,7 @@ public class AttentionController extends WebApiController {
             Fetcher f = this.fetch();
             String sessionkey = f.s("sessionkey");
             int causeId = f.i("causeId");
-            int typeId = f.i("typeId");
+            int typeId = f.i("type");
             UserService userService = this.getService(UserService.class);
             int userId = userService.getUserIdBySessionKey(sessionkey);
             AttentionService attentionService = this.getService(AttentionService.class);

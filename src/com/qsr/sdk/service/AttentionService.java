@@ -12,29 +12,29 @@ import java.util.Map;
 
 public class AttentionService extends Service {
     private final static Logger logger = LoggerFactory.getLogger(AttentionService.class);
-    private final static String SELECT_ATTENTION_WITH_SEASON = "SELECT ta.team_name team_a, IFNULL(ta.team_icon, \"\") a_icon, \n" +
-            "            tb.team_name team_b, IFNULL(tb.team_icon, \"\") b_icon, l.lea_name, \n" +
-            "            DATE_FORMAT(s.season_start_play_time, \"%H:%m\") play_time, \n" +
-            "            s.season_gameweek gameweek, s.season_fs_a source_a, s.season_fs_b source_b, \n" +
-            "            ss.status_name, s.season_id, DATE_FORMAT(s.season_start_play_time, \"%y\") play_year,\n" +
-            "            DATE_FORMAT(s.season_start_play_time, \"%m-%d\") play_month";
-    private final static String SELECT_ATTENTION_WITH_SPORTSMAN = "";
-    private final static String SELECT_ATTENTION_WITH_TEAM = "";
-    private final static String SELECT_ATTENTION_WITH_MOSTER = "";
-    private final static String FROM_ATTENTION_WITH_SEASON = "FROM qsr_users_attention a \n" +
-            "INNER JOIN qsr_users_attention_type t ON a.type_id = t.type_id \n" +
-            "INNER JOIN qsr_team_season s ON s.season_id = a.target_id\n" +
-            "INNER JOIN qsr_league l ON l.lea_id = s.lea_id\n" +
-            "INNER JOIN qsr_team_season_status ss ON ss.status_id = s.status_id\n" +
-            "LEFT JOIN qsr_team ta ON ta.team_id = s.season_team_a\n" +
-            "LEFT JOIN qsr_team tb ON tb.team_id = s.season_team_b\n" +
-            "  WHERE a.user_id =?";
-    private final static String FROM_ATTENTION_WITH_TEAM = "";
-    private final static String FROM_ATTENTION_WITH_MOSTER = "";
-    private final static String FROM_ATTENTION_WITH_SPORTSMAN= "";
-    private static final String ADD_ATTENTION = "";
-    private static final String DEL_ATTENTION_WITH_ID = "";
-    private static final String DEL_ATTENTION = "";
+    private final static String SELECT_ATTENTION_WITH_SEASON = "SELECT IF(a.type_id = 1, l.lea_name, IF(a.type_id = 2, ts.sports_name, IF(a.type_id = 3, t.team_name, ''))) name_, " +
+            "  IF(a.type_id = 1, '', IF(a.type_id = 2, ts.sports_img, IF(a.type_id = 3, t.team_icon, ''))) img, " +
+            "  a.att_id, a.type_id, IF(a.type_id = 1, ta.team_name, '') team_a, IF(a.type_id = 1, tb.team_name, '') team_b, IF(a.type_id = 1, s.season_fs_a, 0) fs_a, IF(a.type_id = 1, s.season_fs_b, 0) fs_b, " +
+            "  IF(a.type_id = 1, ta.team_icon, '') team_a_img, IF(a.type_id = 1, tb.team_icon, '') team_b_img, " +
+            "  IF(a.type_id = 1, s.season_start_play_time, '') start_time";
+    private final static String FROM_ATTENTION_WITH_SEASON = "  FROM qsr_users_attention a " +
+            "  LEFT JOIN qsr_team t ON a.target_id = t.team_id " +
+            "  LEFT JOIN qsr_team_season s ON s.season_id = a.target_id " +
+            "  LEFT JOIN qsr_team_sportsman ts ON a.target_id = ts.sports_id " +
+            "  LEFT JOIN qsr_league l ON s.lea_id = l.lea_id " +
+            "  LEFT JOIN qsr_team ta ON s.season_team_a = ta.team_id " +
+            "  LEFT JOIN qsr_team tb ON s.season_team_b = tb.team_id " +
+            "  WHERE a.user_id = ? AND a.status_id = 1 " +
+            "ORDER BY a.createtime DESC";
+    private static final String ADD_ATTENTION = "INSERT INTO qsr_users_attention(target_id, user_id, type_id) " +
+            "  SELECT i.target_id, i.user_id, i.type_id FROM (SELECT ? AS status_id, ? AS target_id, ? AS user_id, ? AS type_id) i " +
+            " ON DUPLICATE KEY UPDATE status_id = i.status_id";
+    private static final String DEL_ATTENTION_WITH_ID = "UPDATE qsr_users_attention a SET a.status_id = ? WHERE a.att_id = ?";
+    private static final String DEL_ATTENTION = "INSERT INTO qsr_users_attention(target_id, user_id, type_id) " +
+            "  SELECT i.target_id, i.user_id, i.type_id FROM (SELECT ? AS status_id, ? AS target_id, ? AS user_id, ? AS type_id) i " +
+            " ON DUPLICATE KEY UPDATE status_id = i.status_id";
+
+    private static final int[] STATUS_ID = {1, 2};
 
     public PageList<Map<String, Object>> getAttentionByUserId(int pageNumber, int pageSize, int userId) throws ServiceException {
         try {
@@ -47,25 +47,25 @@ public class AttentionService extends Service {
 
     public void addAttentionByUserId(int typeId, int causeId, int userId) throws ServiceException {
         try {
-            Db.update(ADD_ATTENTION, typeId, causeId, userId);
+            Db.update(ADD_ATTENTION, STATUS_ID[0], causeId, userId, typeId);
         } catch (Throwable t) {
             logger.error("addAttentionByUserId was error. typeId = {} causeId = {} userId = {}", typeId, causeId, userId);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "关注失败", t);
         }
     }
 
-    public void delAttentionWithId(int attentionId, int userId) throws ServiceException {
+    public void delAttentionWithId(int attentionId) throws ServiceException {
         try {
-            Db.update(DEL_ATTENTION_WITH_ID, attentionId, userId);
+            Db.update(DEL_ATTENTION_WITH_ID, STATUS_ID[1], attentionId);
         } catch (Throwable t) {
-            logger.error("delAttention was error. attentionId = {}, userId = {}", attentionId, userId);
+            logger.error("delAttention was error. attentionId = {} ", attentionId);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "取关失败", t);
         }
     }
 
     public void delAttention(int userId, int typeId, int causeId) throws ServiceException {
         try {
-            Db.update(DEL_ATTENTION, userId, typeId, causeId);
+            Db.update(DEL_ATTENTION, STATUS_ID[1], causeId, userId, typeId);
         } catch (Throwable t) {
             logger.error("delAttention was error. userId={}, typeId={}, causeId={}, exception={}", userId, typeId, causeId, t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "取关失败", t);
