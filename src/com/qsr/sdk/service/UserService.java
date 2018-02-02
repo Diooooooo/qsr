@@ -76,6 +76,7 @@ public class UserService extends Service {
         try {
             Db.update(sql, clientIp, userId);
         } catch (Throwable e){
+            logger.error("modifyLog was error, exception = {} ", e);
             logger.error("modify user Last client Ip error, exception={}", e.getMessage());
         }
     }
@@ -95,6 +96,7 @@ public class UserService extends Service {
         try {
             Db.update(sql + where, fileId, nickName, sex, birthday, userId);
         } catch (Throwable e) {
+            logger.error("modifyUserInfo was error, exception = {} ", e);
             throw new ServiceException(getServiceName(), ErrorCode.DATA_SAVA_FAILED, "修改信息失败");
         }
     }
@@ -103,10 +105,11 @@ public class UserService extends Service {
         if (!confirm.equals(newPassword)) {
             throw new ServiceException(getServiceName(), ErrorCode.CONFIRM, "两次输入密码不一致");
         }
-        String sql = "";
+        String sql = "UPDATE qsr_users u SET u.passwordkey = MD5(?) WHERE u.mobile = ? ";
         try {
-            Db.update(sql, mobile, newPassword);
+            Db.update(sql, newPassword + mobile, mobile);
         } catch (Throwable e) {
+            logger.error("resetPassword was error, exception = {}", e);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "重置密码失败");
         }
     }
@@ -116,6 +119,7 @@ public class UserService extends Service {
             String sql = "UPDATE qsr_users u SET u.head_img_file_id = ?, u.head_img_url = ? WHERE u.id = ?";
             Db.update(sql, fileId, headUrl, userId);
         } catch (Throwable e) {
+            logger.error("modifyHead was error, exception = {}", e);
             throw new ServiceException(getServiceName(), ErrorCode.DATA_SAVA_FAILED, "修改头像失败");
         }
     }

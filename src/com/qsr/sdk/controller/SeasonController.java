@@ -82,7 +82,7 @@ public class SeasonController extends WebApiController {
             Fetcher f = this.fetch();
             logger.debug("getSeasonInfo, params={}", f);
             int seasonId = f.i("season_id");
-            String sessionkey = f.s("sessionkey", StringUtil.EMPTY_STRING);
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             int userId = 0;
             if (!StringUtil.isEmptyOrNull(sessionkey)) {
                 UserService userService = this.getService(UserService.class);
@@ -160,4 +160,19 @@ public class SeasonController extends WebApiController {
         }
     }
 
+    /**
+     * 焦点赛事
+     */
+    public void getForceSeason() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            logger.debug("getForceSeason params={}", f);
+            SeasonService seasonService = this.getService(SeasonService.class);
+            List<Map<String, Object>> forces = seasonService.getSeasonForce();
+            this.renderData(forces, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getForceSeason", t);
+        }
+    }
 }

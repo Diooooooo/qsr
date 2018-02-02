@@ -49,7 +49,7 @@ public class AttentionService extends Service {
         try {
             Db.update(ADD_ATTENTION, STATUS_ID[0], causeId, userId, typeId);
         } catch (Throwable t) {
-            logger.error("addAttentionByUserId was error. typeId = {} causeId = {} userId = {}", typeId, causeId, userId);
+            logger.error("addAttentionByUserId was error. typeId = {} causeId = {} userId = {} exception = {}", typeId, causeId, userId, t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "关注失败", t);
         }
     }
@@ -58,7 +58,7 @@ public class AttentionService extends Service {
         try {
             Db.update(DEL_ATTENTION_WITH_ID, STATUS_ID[1], attentionId);
         } catch (Throwable t) {
-            logger.error("delAttention was error. attentionId = {} ", attentionId);
+            logger.error("delAttention was error. attentionId = {} exception = {} ", attentionId, t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "取关失败", t);
         }
     }

@@ -27,4 +27,16 @@ public class NewsController extends WebApiController {
             this.renderException("getNews", t);
         }
     }
+
+    public void getNewsInfo() {
+        try {
+            Fetcher f = this.fetch();
+            int newId = f.i("new_id");
+            NewsService newsService = this.getService(NewsService.class);
+            Map<String, Object> newInfo = newsService.getNewsInfo(newId);
+            this.renderData(newInfo, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getNewsInfo", t);
+        }
+    }
 }

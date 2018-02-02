@@ -2,16 +2,18 @@ package com.qsr.sdk.service;
 
 import com.jfinal.plugin.activerecord.Db;
 import com.qsr.sdk.service.exception.ServiceException;
+import com.qsr.sdk.service.serviceproxy.annotation.CacheAdd;
 import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class PlanService extends Service {
     private static final Logger logger = LoggerFactory.getLogger(PlanService.class);
-    private static final String SELECT_PLAN = "SELECT p.plan_name, i.team_id, s.status_id, s.status_name, " +
+    private static final String SELECT_PLAN = "SELECT p.plan_name, i.team_id, s.status_id, s.status_name, ts.sports_number, " +
             "  ts.sports_id, ts.sports_name, ts.sports_name_en, r.role_id, r.role_name FROM qsr_team_season_plan p " +
             "  INNER JOIN qsr_team_season_plan_item i ON p.plan_id = i.plan_id  " +
             "  INNER JOIN qsr_team_season_plan_item_status s ON s.status_id = i.status_id " +
@@ -20,6 +22,7 @@ public class PlanService extends Service {
             "  WHERE p.season_id = ? " +
             "ORDER BY i.createdate ASC";
 
+    @CacheAdd(name = "plans", timeout = 5, timeUnit = TimeUnit.MINUTES)
     public List<Map<String, Object>> getPlans(int seasonId) throws ServiceException {
         try {
             return record2list(Db.find(SELECT_PLAN, seasonId));

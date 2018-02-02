@@ -1,15 +1,18 @@
 package com.qsr.sdk.service;
 
 import com.jfinal.plugin.activerecord.Db;
+import com.jfinal.plugin.activerecord.Record;
 import com.qsr.sdk.jfinal.DbUtil;
 import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.service.exception.ServiceException;
+import com.qsr.sdk.service.serviceproxy.annotation.CacheAdd;
 import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class SeasonService extends Service {
 
@@ -131,6 +134,18 @@ public class SeasonService extends Service {
             "AND YEAR(ts.season_year) = YEAR(NOW()) " +
             "ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
     private static final String SELECT_SEASON_LIST_BY_LEAGUE_ID = "";
+    private static final String SELECT_SEASON_FORCE = "SELECT l.lea_name, " +
+            "DATE_FORMAT(s.season_start_play_time, '%m/%d %H:%i') play_time, a.team_name name_a, a.team_icon icon_a, " +
+            "b.team_name name_b, b.team_icon icon_b, s.season_id, COUNT(e.esoterica_id) authority " +
+            "FROM qsr_team_season_force f " +
+            "  INNER JOIN qsr_team_season s ON f.season_id = s.season_id " +
+            "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id " +
+            "  INNER JOIN qsr_team a ON a.team_id = s.season_team_a " +
+            "  INNER JOIN qsr_team b ON b.team_id = s.season_team_b " +
+            "  LEFT JOIN qsr_team_season_esoterica e ON e.sea_id = s.season_id " +
+            "GROUP BY s.season_id " +
+            "ORDER BY f.createtime DESC " +
+            "LIMIT 5";
 
     /**
      * 根据联赛Id获取赛程
@@ -297,12 +312,22 @@ public class SeasonService extends Service {
         }
     }
 
-    public List<Map<String,Object>> getSeasonListByLeagueId(int leagueId) throws ServiceException {
+    public List<Map<String, Object>> getSeasonListByLeagueId(int leagueId) throws ServiceException {
         try {
             return record2list(Db.find(SELECT_SEASON_LIST_BY_LEAGUE_ID, leagueId));
         } catch (Throwable t) {
             logger.error("getSeasonListByLeagueId was error, exception = {}",t );
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "历史加载失败", t);
+        }
+    }
+
+    @CacheAdd(name = "force", timeout = 10, timeUnit = TimeUnit.MINUTES)
+    public List<Map<String, Object>> getSeasonForce() throws ServiceException {
+        try {
+            return record2list(Db.find(SELECT_SEASON_FORCE));
+        } catch (Throwable t) {
+            logger.error("getSeasonForce was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "读取焦点赛事失败", t);
         }
     }
 }
