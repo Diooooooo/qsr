@@ -50,6 +50,8 @@ public class Config extends JFinalConfig {
 		me.add("/test", TestController.class);
 		me.add("/im", MessageController.class);
 		me.add("news", NewsController.class);
+		me.add("payOrder", PayOrderController.class);
+		me.add("notify", PayOrderNotifyController.class);
 	}
 
 	@Override

@@ -52,6 +52,18 @@ public class TeamController extends WebApiController {
         }
     }
 
+    public void getSportsmanInfo() {
+        try {
+            Fetcher f = this.fetch();
+            int sportsId = f.i("sportsId");
+            SportsManService sportsManService = this.getService(SportsManService.class);
+            Map<String, Object> info = sportsManService.getSportsmanInfo(sportsId);
+            this.renderData(info, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getSportsmanInfo", t);
+        }
+    }
+
     public void getSeasonListByTeamId(){
         try {
             Fetcher f = this.fetch();

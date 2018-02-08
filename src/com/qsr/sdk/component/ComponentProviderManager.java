@@ -8,6 +8,7 @@ import com.qsr.sdk.component.filestorage.provider.alioss.AliOssProvider;
 import com.qsr.sdk.component.filestorage.provider.local.LocalProvider;
 import com.qsr.sdk.component.im.provider.JImProvider;
 import com.qsr.sdk.component.payment.provider.alipay.AliPaymentProvider;
+import com.qsr.sdk.component.payment.provider.weixin.WeixinProvider;
 import com.qsr.sdk.component.payment.provider.yhxf.YhxfProvider;
 import com.qsr.sdk.component.push.provider.getxin.GetxinPushProvider;
 import com.qsr.sdk.component.push.provider.jPush.JPushProvider;
@@ -83,6 +84,7 @@ public class ComponentProviderManager {
 				.registerProvider().registerComponent();
 		ProviderBuilder.getProviderBuilder(new YhxfProvider())
 				.registerProvider().registerComponent();
+		ProviderBuilder.getProviderBuilder(new WeixinProvider()).registerProvider().registerComponent();
 
 		// 第三方帐号提供商
 

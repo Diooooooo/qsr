@@ -22,7 +22,7 @@ public class SeasonService extends Service {
             "tb.team_name team_b, IFNULL(tb.team_icon, \"\") b_icon, l.lea_name, " +
             "DATE_FORMAT(ts.season_start_play_time, \"%H:%i\") play_time, " +
             "ts.season_gameweek gameweek, ts.season_fs_a source_a, ts.season_fs_b source_b, " +
-            "tss.status_name, tss.status_id, ts.season_id, DATE_FORMAT(ts.season_start_play_time, \"%Y\") play_year," +
+            "tss.status_name, tss.status_id, ts.season_id, DATE_FORMAT(ts.season_start_play_time, \"%Y-%m\") play_year," +
             "DATE_FORMAT(ts.season_start_play_time, \"%m-%d\") play_month ";
     private final static String FROM_SEASON_BY_SEASON_DATE_WIth_USER = "  FROM qsr_team_season ts " +
                             "  INNER JOIN qsr_users_attention ua ON ua.target_id = ts.season_id " +
@@ -100,14 +100,14 @@ public class SeasonService extends Service {
             "    WHEN s.season_home_team_id = s.season_team_a THEN s.season_team_b " +
             "    WHEN s.season_home_team_id = s.season_team_b THEN s.season_team_b " +
             "    ELSE 0 " +
-            "  END AS home_team, " +
+            "  END AS home_team, s.season_id, " +
             "  s.season_situation AS situation, s.season_analysis AS analysis, s.season_guess AS guess, " +
             "  s.season_odds AS odds, IFNULL(s.season_live, \"\")  AS live, s.self_chatroom_id AS self, s.chatroom_id " +
             "FROM qsr_team_season s " +
             "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id " +
             "  INNER JOIN qsr_team t ON s.season_team_a = t.team_id " +
             "  INNER JOIN qsr_team qt ON qt.team_id = s.season_team_b " +
-            "  INNER JOIN qsr_team_season_status tss ON tss.status_id = s.season_id " +
+            "  INNER JOIN qsr_team_season_status tss ON tss.status_id = s.status_id " +
             "WHERE s.season_id = ?";
     private final static String TEAM_SEASON_HISTORY_WITH_VS = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
@@ -142,10 +142,14 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id " +
             "  INNER JOIN qsr_team a ON a.team_id = s.season_team_a " +
             "  INNER JOIN qsr_team b ON b.team_id = s.season_team_b " +
-            "  LEFT JOIN qsr_team_season_esoterica e ON e.sea_id = s.season_id " +
+            "  LEFT JOIN qsr_team_season_esoterica_item i ON i.season_id = s.season_id " +
+            "  LEFT JOIN qsr_team_season_esoterica e on e.esoterica_id = i.esoterica_id " +
+            "  WHERE f.enabled = 1 " +
             "GROUP BY s.season_id " +
             "ORDER BY f.createtime DESC " +
             "LIMIT 5";
+    private static final String SELECT_ATTENTION = "SELECT 1 FROM qsr_users_attention a WHERE a.type_id = ? " +
+            "AND a.user_id = ? AND a.target_id = ? AND a.status_id = 1";
 
     /**
      * 根据联赛Id获取赛程
@@ -284,6 +288,15 @@ public class SeasonService extends Service {
         } catch (Throwable t) {
             logger.error("getSeasonInfo was error. seasonId={}, exception={}", seasonId, t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "赛事加载失败", t);
+        }
+    }
+
+    public boolean isAttention(Object causeId, int userId, int typeId) throws ServiceException {
+        try {
+            Map<String, Object> info = record2map(Db.findFirst(SELECT_ATTENTION, typeId, userId, causeId));
+            return null == info ? false : true;
+        } catch (Throwable t) {
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "查询关注失败", t);
         }
     }
 

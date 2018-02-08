@@ -31,11 +31,11 @@ public class WeixinPayment extends AbstractPayment {
 	public static final int PROVIDER_ID = 11;
 
 	/** 公众账号ID */
-	private static final String appid = "appid";
+	private static final String appid = "";
 	/** 商户号 */
-	private static final String mch_id = "1226362502";
+	private static final String mch_id = "";
 
-	private static final String key = "key=1111";
+	private static final String key = "key=_qsr_";
 
 	/** 统一下单 */
 	private static final String order_url = "https://api.mch.weixin.qq.com/pay/unifiedorder";

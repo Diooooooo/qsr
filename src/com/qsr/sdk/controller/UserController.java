@@ -3,11 +3,9 @@ package com.qsr.sdk.controller;
 import com.jfinal.plugin.activerecord.Page;
 import com.jfinal.upload.UploadFile;
 import com.qsr.sdk.controller.fetcher.Fetcher;
+import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.service.*;
-import com.qsr.sdk.util.Constants;
-import com.qsr.sdk.util.Env;
-import com.qsr.sdk.util.Md5Util;
-import com.qsr.sdk.util.StringUtil;
+import com.qsr.sdk.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +14,7 @@ import java.util.*;
 
 public class UserController extends WebApiController {
 	final static Logger logger = LoggerFactory.getLogger(UserController.class);
+	private final static String FILE_PREFIX = "userfiles/";
 
 	public UserController() {
 		super(logger);
@@ -215,7 +214,7 @@ public class UserController extends WebApiController {
 				userService.modifyHead(userId, fileId, fileUrl);
 				this.renderData(SUCCESS);
 			} else {
-				throw new IllegalArgumentException("需上传一张图片");
+				throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "需上传一张图片");
 			}
 		} catch (Throwable e) {
 			this.renderException("modifyHead", e);
@@ -257,6 +256,35 @@ public class UserController extends WebApiController {
 			this.renderData(SUCCESS);
 		} catch (Throwable t) {
 			this.renderException("sendInformation", t);
+		}
+	}
+
+	public void bindIDCard() {
+		try {
+		    Fetcher f = this.fetch();
+		    String sessionkey = f.s("sessionkey");
+		    String name = f.s("name");
+		    String number = f.s("number");
+		    UploadFile frontd = this.getFile("idcard_photo1");
+			UploadFile reverse = this.getFile("idcard_photo2");
+			UploadFile hold = this.getFile("idcard_photo3");
+			if (null == frontd || null == reverse || null == hold) {
+			    throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不完整");
+			}
+			UserService userService = this.getService(UserService.class);
+			int userId = userService.getUserIdBySessionKey(sessionkey);
+			FileStorageService fileStorageService = this.getService(FileStorageService.class);
+			int fileStorageProviderId = Env.getFileStorageProviderId();
+			int frontdId = fileStorageService.uploadFile(fileStorageProviderId, FILE_PREFIX + userId, frontd.getFile());
+			frontd.getFile().delete();
+			int reverseId = fileStorageService.uploadFile(fileStorageProviderId, FILE_PREFIX + userId, reverse.getFile());
+			reverse.getFile().delete();
+			int holdId = fileStorageService.uploadFile(fileStorageProviderId, FILE_PREFIX + userId, hold.getFile());
+			hold.getFile().delete();
+			BindService bindService = this.getService(BindService.class);
+			bindService.bindIdCard(userId, name, number, frontdId, reverseId, holdId);
+		} catch (Throwable t) {
+			this.renderException("bindIDCard", t);
 		}
 	}
 

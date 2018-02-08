@@ -13,6 +13,7 @@ import java.util.Map;
 public class SeasonController extends WebApiController {
 
     final static Logger logger = LoggerFactory.getLogger(SeasonController.class);
+    private static final int[] ATTENTION_TYPE = {1, 2, 3, 4, 5};
 
     public SeasonController() {
         super(logger);
@@ -90,6 +91,12 @@ public class SeasonController extends WebApiController {
             }
             SeasonService seasonService = this.getService(SeasonService.class);
             Map<String, Object> seasonInfo = seasonService.getSeasonInfo(seasonId);
+            if (0 != userId) {
+                boolean is_attention = seasonService.isAttention(seasonInfo.get("season_id"), userId, ATTENTION_TYPE[0]);
+                seasonInfo.put("is_attention", is_attention);
+            } else if (0 == userId) {
+                seasonInfo.put("is_attention", false);
+            }
             this.renderData(seasonInfo, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSeasonInfo", t);

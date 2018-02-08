@@ -21,11 +21,11 @@ public class LotteryService extends Service {
             "  LEFT JOIN qsr_team_season_lottery l ON t.type_id = l.type_id " +
             "  LEFT JOIN qsr_team_season s ON s.season_id = l.season_id " +
             "  WHERE l.season_id = ? " +
-            "ORDER BY g.group_id";
+            "ORDER BY g.group_id ASC";
 
     private static final String SELECT_LOTTERY_ITEMS = "SELECT i.item_win, i.item_deuce, i.item_lose, " +
             "i.item_win_status, i.item_lose_status, DATE_FORMAT(i.createtime, '%m-%d %H:%i') change_time " +
-            "FROM qsr_team_season_lottery_item i WHERE i.lottery_id = ? ";
+            "FROM qsr_team_season_lottery_item i WHERE i.lottery_id = ? ORDER BY i.createtime ASC ";
 
     @CacheAdd(name = "lottery", timeout = 1, timeUnit = TimeUnit.MINUTES)
     public List<Map<String, Object>> getLotteries(int seasonId) throws ServiceException {

@@ -56,6 +56,7 @@ public class Env {
     private static List<String> ignore_device_imeis;
     private static String information;
     private static String chatRoom;
+    private static String DIVISOR;
 
     public static String[] getRealIpHeaders() {
         if (real_ip_headers == null) {
@@ -335,5 +336,12 @@ public class Env {
             chatRoom = parameter.s("chat_room");
         }
         return chatRoom;
+    }
+
+    public static String getDIVISOR() {
+        if (null == DIVISOR) {
+            DIVISOR = parameter.s("divisor", "_qsr_");
+        }
+        return DIVISOR;
     }
 }

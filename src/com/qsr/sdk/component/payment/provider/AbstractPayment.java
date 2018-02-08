@@ -26,7 +26,7 @@ public abstract class AbstractPayment extends AbstractComponent implements
 	protected static AtomicLong atomLong = new AtomicLong(0);
 	protected static final String separation = ":";
 
-	protected static final String ORDERNUMBER_SIGNATUREKEY = "_e9w_";
+	protected static final String ORDERNUMBER_SIGNATUREKEY = "_qsr_";
 	private final String numberPoolId;
 
 	// protected Map<String, String> response;
