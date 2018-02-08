@@ -100,7 +100,7 @@ public class SeasonService extends Service {
             "    WHEN s.season_home_team_id = s.season_team_a THEN s.season_team_b " +
             "    WHEN s.season_home_team_id = s.season_team_b THEN s.season_team_b " +
             "    ELSE 0 " +
-            "  END AS home_team, s.season_id, " +
+            "  END AS home_team, s.season_id, t.team_icon a_icon, qt.team_icon b_icon, " +
             "  s.season_situation AS situation, s.season_analysis AS analysis, s.season_guess AS guess, " +
             "  s.season_odds AS odds, IFNULL(s.season_live, \"\")  AS live, s.self_chatroom_id AS self, s.chatroom_id " +
             "FROM qsr_team_season s " +

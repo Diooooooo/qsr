@@ -32,6 +32,10 @@ public class UserController extends WebApiController {
 	        String userType = f.s("user_type", "qsr");
 	        String ip = this.getRemoteAddr();
 
+	        if (!password.equals(confirm)) {
+	        	throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "两次密码不一样");
+			}
+
 			MessageService messageService = this.getService(MessageService.class);
 			messageService.registerUser(Md5Util.digest(mobile), Md5Util.digest(mobile), StringUtil.NULL_STRING, nickName);
 	        UserService userService = this.getService(UserService.class);

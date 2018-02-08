@@ -73,7 +73,8 @@ public class JIm extends AbstractComponent implements Im {
                 RegisterInfo user = RegisterInfo.newBuilder().setUsername(name).setPassword(password).setAvatar(avatar).setNickname(nickname).build();
                 users.add(user);
                 RegisterInfo[] registerInfos = new RegisterInfo[users.size()];
-                client.registerUsers(users.toArray(registerInfos));
+                String res = client.registerUsers(users.toArray(registerInfos));
+                logger.info(res);
             } catch (APIConnectionException e) {
                 logger.error("registerUser was error. exception = {}", e);
             } catch (APIRequestException e) {

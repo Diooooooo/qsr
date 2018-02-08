@@ -1,14 +1,18 @@
 package com.qsr.sdk.controller;
 
 import com.qsr.sdk.controller.fetcher.Fetcher;
+import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.service.MessageService;
+import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.service.exception.ServiceException;
 import com.qsr.sdk.util.Env;
+import com.qsr.sdk.util.ErrorCode;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -49,6 +53,33 @@ public class MessageController extends WebApiController {
             this.renderData();
         } catch (Throwable t) {
             this.renderException("registerUser", t);
+        }
+    }
+
+    public void batchRegisterUsers() {
+        try {
+            Fetcher f = this.fetch();
+            String pwd = f.s("manager");
+            if (Env.getManagementPassword().equalsIgnoreCase(pwd)) {
+                UserService userService = this.getService(UserService.class);
+                List<Map<String, Object>> users = userService.getUserList();
+                MessageService messageService = this.getService(MessageService.class);
+                executors.execute(() -> {
+                    for (Map<String, Object> m : users) {
+                        try {
+                            messageService.registerUser(String.valueOf(m.get("s")), String.valueOf(m.get("s")),
+                                    String.valueOf(m.get("a")), String.valueOf(m.get("n")));
+                        } catch (ServiceException e) {
+                            logger.error("batchRegisterUsers was error in controller. exception = {} ", e);
+                        }
+                    }
+                });
+                this.renderData();
+            } else {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "无权访问此接口，请联系管理员");
+            }
+        } catch (Throwable t) {
+            this.renderException("batchRegisterUsers", t);
         }
     }
 

@@ -2,19 +2,23 @@ package com.qsr.sdk.service;
 
 import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.activerecord.Record;
+import com.qsr.sdk.component.im.provider.JIm;
 import com.qsr.sdk.service.exception.ServiceException;
+import com.qsr.sdk.service.helper.PushHelper;
 import com.qsr.sdk.service.serviceproxy.annotation.CacheAdd;
 import com.qsr.sdk.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 public class UserService extends Service {
 
     final static Logger logger = LoggerFactory.getLogger(UserService.class);
+    private static final String SELECT_USERS = "SELECT u.sessionkey s, u.nickname n, u.head_img_url a FROM qsr_users u WHERE u.type_id = 1";
 
     @CacheAdd(capacity = 2000, timeout = 1, timeUnit = TimeUnit.DAYS)
     protected Integer queryUserIdBySessionKey(String sessionKey) {
@@ -121,6 +125,15 @@ public class UserService extends Service {
         } catch (Throwable e) {
             logger.error("modifyHead was error, exception = {}", e);
             throw new ServiceException(getServiceName(), ErrorCode.DATA_SAVA_FAILED, "修改头像失败");
+        }
+    }
+
+    public List<Map<String,Object>> getUserList() throws ServiceException {
+        try {
+            return record2list(Db.find(SELECT_USERS));
+        } catch (Throwable t) {
+            logger.error("getUserList was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载用户失败", t);
         }
     }
 }

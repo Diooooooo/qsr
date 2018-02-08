@@ -16,7 +16,7 @@ public class MessageService extends Service {
 
     private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
     private static final String SELECT_WAITING_ROOMS = "SELECT s.season_id, " +
-            "            CONCAT(a.team_name, ' VS ', b.team_name) AS room_name, s.self_chatroom_id, s.chatroom_id " +
+            "            CONCAT(s.season_start_play_time, '-', a.team_id, '-', a.team_name, ' VS ', b.team_id, '-', b.team_name) AS room_name, s.self_chatroom_id, s.chatroom_id " +
             "            FROM qsr_team_season s  " +
             "            INNER JOIN qsr_team a ON s.season_team_a = a.team_id " +
             "            INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +

@@ -278,7 +278,7 @@ public class EsotericaService extends Service {
         List<Record> lr = Db.find(ESOTERICA_ITEM, r.get("esoterica_id"), LIMIT);
         Record scr = Db.findFirst(ESOTERICA_STAR_CONTINUE, r.get("esoterica_author"), LIMIT);
         String rate = "0";
-        r.set("item", lr);
+        r.set("item", record2list(lr));
         r.set("star", scr.get("star"));
         r.set("_continue", scr.get("_continue"));
         r.set("rate", rate);
