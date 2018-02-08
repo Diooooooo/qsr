@@ -4,7 +4,6 @@ import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.service.EsotericaService;
-import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.util.ErrorCode;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
@@ -41,12 +40,9 @@ public class EsotericaController extends WebApiController {
     public void getEsotericaWithAuthority() {
         try {
             Fetcher f = this.fetch();
-            String authority = f.s("authority");
-            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int authorityId = f.i("authority");
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
-            UserService userService = this.getService(UserService.class);
-            int authorityId = userService.getUserIdBySessionKey(authority);
             EsotericaService esotericaService = this.getService(EsotericaService.class);
             PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListByUserId(pageNumber, pageSize, authorityId);
             this.renderData(esotericas, SUCCESS);
@@ -58,13 +54,11 @@ public class EsotericaController extends WebApiController {
     public void getEsotericaWithAuthorityPrev() {
         try {
             Fetcher f = this.fetch();
-            String sessionkey = f.s("sessionkey");
+            int authorityId = f.i("authority");
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
-            UserService userService = this.getService(UserService.class);
-            int userId = userService.getUserIdBySessionKey(sessionkey);
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaHistoryWithAuthorityPrev(pageNumber, pageSize, userId);
+            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaHistoryWithAuthorityPrev(pageNumber, pageSize, authorityId);
             this.renderData(esotericas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaWithAutorityPrev", t);
@@ -187,4 +181,56 @@ public class EsotericaController extends WebApiController {
         }
     }
 
+    public void getEsotericaWithHot() {
+        try {
+            Fetcher f = this.fetch();
+            int pageNumber = f.i("pageNumber", 1);
+            int pageSize = f.i("pageSize", 10);
+            int sportteryId = f.i("sportteryId");
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListByHot(pageNumber, pageSize, sportteryId);
+            this.renderData(esotericas, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getEsotericaWithHot", t);
+        }
+    }
+
+    public void getEsotericaWithAllSeason() {
+        try {
+            Fetcher f = this.fetch();
+            String issue = f.s("issue");
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            List<Map<String, Object>> esotericas = esotericaService.getEsotericaListWithIssue(issue);
+            this.renderData(esotericas, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getEsotericaWithAllSeason", t);
+        }
+    }
+
+    public void getEsotericaWithTypeAndIssue() {
+        try {
+            Fetcher f = this.fetch();
+            String issue = f.s("issue");
+            int typeId = f.i("type");
+            int pageNumber = f.i("pageNumber");
+            int pageSize = f.i("pageSize");
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaWithTypeAndIssue(pageNumber, pageSize, issue, typeId);
+            this.renderData(esotericas, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getEsotericaWithTypeAndIssue", t);
+        }
+    }
+
+    public void getSportteryInfo() {
+        try {
+            Fetcher f = this.fetch();
+            int _id = f.i("_id");
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            Map<String, Object> info = esotericaService.getEsotericaSportteryInfo(_id);
+            this.renderData(info, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getSportteryInfo", t);
+        }
+    }
 }

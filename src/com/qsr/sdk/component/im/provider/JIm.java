@@ -70,7 +70,9 @@ public class JIm extends AbstractComponent implements Im {
             client.setHttpClient(httpClient);
             try {
                 List<RegisterInfo> users = new ArrayList<>();
-                RegisterInfo user = RegisterInfo.newBuilder().setUsername(name).setPassword(password).setAvatar(avatar).setNickname(nickname).build();
+                RegisterInfo user = RegisterInfo.newBuilder().setUsername(name).setPassword(password)
+                        .setAvatar(avatar).setNickname(nickname)
+                        .build();
                 users.add(user);
                 RegisterInfo[] registerInfos = new RegisterInfo[users.size()];
                 String res = client.registerUsers(users.toArray(registerInfos));
