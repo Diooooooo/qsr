@@ -21,14 +21,17 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_team_season_esoterica_status ts ON e.status_id = ts.status_id " +
             "  INNER JOIN qsr_clientui_entry cu ON e.esoterica_author = cu.user_id " +
             "  WHERE e.esoterica_id = ? AND e.enabled = 1 ";
-    private static final String ESOTERICA_SELECT_LIST = "SELECT IFNULL(u.head_img_url, '') head_img_url, u.nickname, 0 AS rate_return, " +
+    private static final String ESOTERICA_SELECT_LIST = "SELECT IFNULL(u.head_img_url, '') head_img_url, " +
+            "  u.nickname, 0 AS rate_return, " +
             "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, " +
             "  e.esoterica_date create_time, '' AS detail, e.esoterica_price price, " +
             "  t.team_name team_a, b.team_name team_b, s.season_start_play_time - INTERVAL 30 MINUTE play_time, " +
             "  s.season_fs_a fs_a, s.season_fs_b fs_b";
     private static final String ESOTERICA_SELECT_LIST_V2 = "SELECT IFNULL(u.head_img_url, '') head_img_url, u.nickname, " +
-            "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, IFNULL(cu.description, '') _desc, " +
-            "  e.esoterica_price price, e.esoterica_id, e.status_id, e.esoterica_author, et.type_name, et.type_id, ts.status_id ts_id, ts.status_name ";
+            "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, " +
+            "  DATE_FORMAT(e.esoterica_date, '%m-%d %H:%i') t, IFNULL(cu.description, '') _desc, " +
+            "  e.esoterica_price price, e.esoterica_id, e.status_id, e.esoterica_author, et.type_name, et.type_id, " +
+            "  ts.status_id ts_id, ts.status_name ";
     private static final String ESOTERICA_FROM = "FROM qsr_team_season_esoterica e " +
             "  INNER JOIN qsr_team_season_esoterica_status ts ON e.status_id = ts.status_id " +
             "  INNER JOIN qsr_team_season_esoterica_type et ON e.type_id = et.type_id " +
@@ -107,7 +110,8 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_team_season_esoterica_status ts ON e.status_id = ts.status_id " +
             "  INNER JOIN qsr_users u ON e.esoterica_author = u.id " +
             "  INNER JOIN qsr_clientui_entry cu ON e.esoterica_author = cu.user_id " +
-            "WHERE e.enabled = 1 AND e.status_id != 1 AND e.esoterica_author = ? AND e.esoterica_date < now() AND e.createtime < now()" +
+            "WHERE e.enabled = 1 AND e.status_id != 1 AND e.esoterica_author = ? AND e.esoterica_date < now() " +
+            "AND e.createtime < now()" +
             "ORDER BY e.stick DESC, e.createtime DESC";
     private static final String ESOTERICA_ITEM = "SELECT l.lea_name n, a.team_name a, b.team_name b, " +
             "  DATE_FORMAT(s.season_start_play_time, '%m-%d %H:%i') pt FROM qsr_team_season_esoterica_item i " +
@@ -161,7 +165,8 @@ public class EsotericaService extends Service {
             "INNER JOIN qsr_clientui_entry cu ON e.esoterica_author = cu.user_id " +
             "WHERE e.enabled = 1 AND e.status_id = 1 AND s.sporttery_issue = ? AND e.type_id = ? " +
             "ORDER BY e.stick DESC, e.createtime DESC";
-    private static final String ESOTERICA_SPORTTERY_INFO = "SELECT IFNULL(u.head_img_url, '') head_img_url, u.nickname, " +
+    private static final String ESOTERICA_SPORTTERY_INFO = "SELECT IFNULL(u.head_img_url, '') head_img_url, " +
+            "IFNULL(e.entry_name, u.nickname) nickname, " +
             "IFNULL(e.description, '') _desc " +
             "  FROM qsr_clientui_entry e " +
             "  INNER JOIN qsr_users u ON e.user_id = u.id " +

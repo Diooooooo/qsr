@@ -52,6 +52,7 @@ public class Config extends JFinalConfig {
 		me.add("news", NewsController.class);
 		me.add("payOrder", PayOrderController.class);
 		me.add("notify", PayOrderNotifyController.class);
+		me.add("internal", InternalController.class);
 	}
 
 	@Override

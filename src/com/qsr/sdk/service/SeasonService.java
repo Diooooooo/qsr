@@ -150,6 +150,8 @@ public class SeasonService extends Service {
             "LIMIT 5";
     private static final String SELECT_ATTENTION = "SELECT 1 FROM qsr_users_attention a WHERE a.type_id = ? " +
             "AND a.user_id = ? AND a.target_id = ? AND a.status_id = 1";
+    private static final String SELECT_SEASON_PLAYING_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
+            "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 90 MINUTE";
 
     /**
      * 根据联赛Id获取赛程
@@ -341,6 +343,16 @@ public class SeasonService extends Service {
         } catch (Throwable t) {
             logger.error("getSeasonForce was error. exception = {}", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "读取焦点赛事失败", t);
+        }
+    }
+
+    @CacheAdd(name = "playing", timeout = 5, timeUnit = TimeUnit.MINUTES)
+    public List<Map<String, Object>> getPlayingSeasons() throws ServiceException {
+        try {
+            return record2list(Db.find(SELECT_SEASON_PLAYING_SEASON));
+        } catch (Throwable t) {
+            logger.error("getPlayingSeasons was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "读取进行中比赛失败", t);
         }
     }
 }

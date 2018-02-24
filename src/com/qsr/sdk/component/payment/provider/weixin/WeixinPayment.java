@@ -31,7 +31,7 @@ public class WeixinPayment extends AbstractPayment {
 	public static final int PROVIDER_ID = 11;
 
 	/** 公众账号ID */
-	private static final String appid = "";
+	private static final String appid = "wx6f24d4e313ed8d2e";
 	/** 商户号 */
 	private static final String mch_id = "";
 
@@ -81,11 +81,11 @@ public class WeixinPayment extends AbstractPayment {
 		PaymentOrder result = super.request(paymentType, paymentFee, clientIp,
 				req, notifyUrl);
 
+		String nonce_str = Md5Util.digest(key + "" + System.currentTimeMillis());
 		Map<String, Object> request = new HashMap<String, Object>();
 		request.put("appid", appid);
 		request.put("mch_id", mch_id);
-		request.put("nonce_str",
-				Md5Util.digest("" + System.currentTimeMillis()));
+		request.put("nonce_str", nonce_str);
 		// 商品描述
 		request.put("body", req.get("purchase_Name"));
 		// 商品详情
@@ -124,8 +124,8 @@ public class WeixinPayment extends AbstractPayment {
 			responseString = HttpUtil.post(order_url, content);
 
 		} catch (IOException e) {
-			throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN,
-					"创建微信订单时出现网络错误", e);
+			logger.error("Payment was error. the internet was error, exception = {} ", e);
+			throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN, "创建微信订单时出现网络错误", e);
 		}
 		Map<String, String> response = xml2map(responseString);
 
@@ -133,6 +133,7 @@ public class WeixinPayment extends AbstractPayment {
 		String returnMsg = response.get("return_msg");
 
 		if (!return_code_success.equals(returnCode)) {
+		    logger.error("create wxpay was error. the wxpay service is down");
 			throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN,
 					"微信支付失败:" + returnCode + "," + returnMsg);
 		}
@@ -141,8 +142,15 @@ public class WeixinPayment extends AbstractPayment {
 		sign = response.remove("sign");
 		String sign2 = Md5Util.sign(response, key).toUpperCase();
 		if (!sign2.equals(sign)) {
+			logger.error("wxpay was error. the sign is not mime");
 			throw new PaymentException(ErrorCode.SIGN_ERROE, "微信数据签名错误");
 		}
+		Map<String, String> conf = new HashMap<>();
+		conf.put("sign", sign);
+		conf.put("nonce_str", nonce_str);
+		conf.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
+		conf.put("prepay_id", paymentCode);
+		result.setConf(conf);
 
 		return result;
 	}
