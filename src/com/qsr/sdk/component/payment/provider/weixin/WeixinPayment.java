@@ -5,47 +5,24 @@ import com.qsr.sdk.component.payment.provider.AbstractPayment;
 import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.exception.PaymentException;
 import com.qsr.sdk.lang.Parameter;
-import com.qsr.sdk.util.ErrorCode;
-import com.qsr.sdk.util.HttpUtil;
-import com.qsr.sdk.util.Md5Util;
-import org.dom4j.Document;
-import org.dom4j.DocumentException;
-import org.dom4j.DocumentHelper;
-import org.dom4j.Element;
-import org.dom4j.io.SAXReader;
-import org.dom4j.io.XMLWriter;
+import com.qsr.sdk.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class WeixinPayment extends AbstractPayment {
 
 	final static Logger logger = LoggerFactory.getLogger(WeixinPayment.class);
-
 	public static final int PROVIDER_ID = 11;
-
-	/** 公众账号ID */
-	private static final String appid = "wx6f24d4e313ed8d2e";
-	/** 商户号 */
-	private static final String mch_id = "";
-
-	private static final String key = "key=_qsr_";
-
-	/** 统一下单 */
-	private static final String order_url = "https://api.mch.weixin.qq.com/pay/unifiedorder";
-
-	private static final String return_code_success = "SUCCESS";
-
-	private static final String return_code_fail = "FAIL";
-
-	// private static final String
-	// order_url="https://api.mch.weixin.qq.com/pay/unifiedorder";
+	private static final String APPID = "wx6f24d4e313ed8d2e";
+	private static final String MCH_ID = "1499166962";
+	private static final String KEY = "key=c05bf0e0d1bfff509fa641fbe6321a72";
+	private static final String ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
+	private static final String RETURN_CODE_SUCCESS = "SUCCESS";
+	private static final String RETURN_CODE_FAIL = "FAIL";
 	private static Map<String, String> codes = new HashMap<String, String>();
 
 	static {
@@ -65,74 +42,44 @@ public class WeixinPayment extends AbstractPayment {
 		codes.put("REQUIRE_POST_METHOD", "请使用post方法");
 		codes.put("POST_DATA_EMPTY", "post数据为空");
 		codes.put("NOT_UTF8", "编码格式错误");
-
 	}
 
 	public WeixinPayment(PaymentProvider provider) {
-
 		super("weixin_payment_seq", provider);
-
 	}
 
 	@Override
 	public PaymentOrder request(String paymentType, int paymentFee,
                                 String clientIp, Map<String, ?> req, String notifyUrl) throws PaymentException {
 
-		PaymentOrder result = super.request(paymentType, paymentFee, clientIp,
-				req, notifyUrl);
+		PaymentOrder result = super.request(paymentType, paymentFee, clientIp, req, notifyUrl);
 
-		String nonce_str = Md5Util.digest(key + "" + System.currentTimeMillis());
-		Map<String, Object> request = new HashMap<String, Object>();
-		request.put("appid", appid);
-		request.put("mch_id", mch_id);
+		String nonce_str = Md5Util.digest("" + System.currentTimeMillis());
+		Map<String, Object> request = new HashMap<>();
+		request.put("appid", APPID);
+		request.put("mch_id", MCH_ID);
 		request.put("nonce_str", nonce_str);
-		// 商品描述
 		request.put("body", req.get("purchase_Name"));
-		// 商品详情
-		// request.put("detail", "");
-		// 附加数据
-		// request.put("attach", "");
-		// 商户订单号
 		request.put("out_trade_no", result.getOrderNumber());
-
-		// 货币类型
-		// request.put("fee_type", "CNY");
-
-		// 总金额
 		request.put("total_fee", paymentFee);
-
-		// 终端IP
 		request.put("spbill_create_ip", clientIp);
-
-//		request.put("notify_url", this.getNotifyUrl());
 		request.put("notify_url", this.getNotifyUrl(result));
-//		request.put("notify_url", result.getNotifyUrl()+ File.separator + this.getProvider());
-		// 交易类型
 		request.put("trade_type", "APP");
-
-		// 商品ID
-		request.put("product_id", 1);
-
-		String sign = Md5Util.sign(request, key).toUpperCase();
-
+        String serializationRequest = Md5Util.concat(request, KEY);
+		String sign = Md5Util.digest(serializationRequest, Env.getCharset()).toUpperCase();
 		request.put("sign", sign);
-
-		String content = map2xml(request);
+		String content = XmlUtil.map2xml(request);
 		String responseString;
 		try {
-
-			responseString = HttpUtil.post(order_url, content);
-
+			responseString = HttpUtil.post(ORDER_URL, content);
 		} catch (IOException e) {
 			logger.error("Payment was error. the internet was error, exception = {} ", e);
 			throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN, "创建微信订单时出现网络错误", e);
 		}
-		Map<String, String> response = xml2map(responseString);
-
+		Map<String, String> response = XmlUtil.xml2map(responseString);
 		String returnCode = response.get("return_code");
 		String returnMsg = response.get("return_msg");
-
-		if (!return_code_success.equals(returnCode)) {
+		if (!RETURN_CODE_SUCCESS.equals(returnCode)) {
 		    logger.error("create wxpay was error. the wxpay service is down");
 			throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN,
 					"微信支付失败:" + returnCode + "," + returnMsg);
@@ -140,102 +87,66 @@ public class WeixinPayment extends AbstractPayment {
 		String paymentCode = response.get("prepay_id");
 		result.setPaymentCode(paymentCode);
 		sign = response.remove("sign");
-		String sign2 = Md5Util.sign(response, key).toUpperCase();
+		String sign2 = Md5Util.sign(response, KEY).toUpperCase();
 		if (!sign2.equals(sign)) {
 			logger.error("wxpay was error. the sign is not mime");
 			throw new PaymentException(ErrorCode.SIGN_ERROE, "微信数据签名错误");
 		}
+
+		String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+		Map<String, Object> res = new HashMap<>();
+		res.put("APPID", APPID);
+        res.put("partnerid", MCH_ID);
+        res.put("prepayid", paymentCode);
+        res.put("package", "Sign=WXPay");
+		res.put("noncestr", nonce_str);
+		res.put("timestamp", timestamp);
+		String resSign = Md5Util.digest(Md5Util.concat(res, KEY), Env.getCharset()).toUpperCase();
 		Map<String, String> conf = new HashMap<>();
-		conf.put("sign", sign);
+		conf.put("sign", resSign);
+		conf.put("body", serializationRequest);
+		conf.put("detail", content);
 		conf.put("nonce_str", nonce_str);
-		conf.put("timestamp", String.valueOf(System.currentTimeMillis() / 1000));
+		conf.put("timestamp", timestamp);
 		conf.put("prepay_id", paymentCode);
 		result.setConf(conf);
-
 		return result;
 	}
 
-	private Map<String, String> xml2map(String xmlContent)
-			throws PaymentException {
-		Map<String, String> result = new HashMap<String, String>();
-
-		SAXReader reader = new SAXReader();
-		try {
-			Document doc = reader.read(new StringReader(xmlContent));
-			Element root = doc.getRootElement();
-			for (Iterator<?> i = root.elementIterator(); i.hasNext();) {
-				Element el = (Element) i.next();
-				String name = el.getName();
-
-				String text = el.getTextTrim();
-				result.put(name, text);
-			}
-			return result;
-		} catch (DocumentException e) {
-			throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN,
-					"解析数据错误", e);
-		}
-	}
-
-	private String map2xml(Map<String, ?> input) throws PaymentException {
-		Document doc = DocumentHelper.createDocument();
-		Element rootElement = DocumentHelper.createElement("xml");
-
-		for (Map.Entry<String, ?> entry : input.entrySet()) {
-			Element elm = rootElement.addElement(entry.getKey());
-			if (entry.getValue() != null) {
-				elm.setText(entry.getValue().toString());
-			}
-		}
-		doc.setRootElement(rootElement);
-		StringWriter sw = new StringWriter();
-		XMLWriter xmlWriter = new XMLWriter(sw);
-		try {
-			xmlWriter.write(doc);
-
-		} catch (IOException e) {
-			throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN,
-					"生成数据错误", e);
-		}
-
-		return sw.getBuffer().toString();
-
-	}
+	public static final String resSign(Map<?, ?> maps) {
+	    return Md5Util.digest(Md5Util.concat(maps, KEY), Env.getCharset()).toUpperCase();
+    }
 
 	@Override
-	protected boolean verifyData(Map<String, ?> resp) throws PaymentException {
+	protected boolean verifyData(Map<String, ?> resp) {
 		Map<String, Object> data = new HashMap<String, Object>();
 		data.putAll(resp);
 		String sign = (String) data.remove("sign");
-		String sign2 = Md5Util.sign(data, key).toUpperCase();
+		String sign2 = Md5Util.sign(data, KEY).toUpperCase();
 
 		return sign2.equals(sign);
 	}
 
 	@Override
-	public Map<String, Object> getPaymentConfig(String paymentType, int fee,
-			Map<String, ?> req) {
+	public Map<String, Object> getPaymentConfig(String paymentType, int fee, Map<String, ?> req) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	protected PaymentStatus getPaymentStatus(Object status) {
-		return return_code_success.equals(status) ? PaymentStatus.PaySuccess
-				: PaymentStatus.PayFailed;
+		return RETURN_CODE_SUCCESS.equals(status) ? PaymentStatus.PaySuccess : PaymentStatus.PayFailed;
 	}
 
 	@Override
-	protected PaymentResponse fetchResponse(Map<String, ?> resp)
-			throws PaymentException {
-
+	protected PaymentResponse fetchResponse(Map<String, ?> resp) throws PaymentException {
 		Parameter p = new Parameter(resp);
 		String returnCode;
 		try {
 			returnCode = p.s("return_code");
 			String returnMsg = p.s("return_msg");
 
-			if (!return_code_success.equals(returnCode)) {
+			if (!RETURN_CODE_SUCCESS.equals(returnCode)) {
 				throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN,
 						"微信支付失败:" + returnCode + "," + returnMsg);
 			}

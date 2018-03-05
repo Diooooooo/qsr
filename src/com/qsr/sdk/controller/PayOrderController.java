@@ -7,7 +7,6 @@ import com.qsr.sdk.lang.Parameter;
 import com.qsr.sdk.service.PayOrderService;
 import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.util.ErrorCode;
-import com.qsr.sdk.util.MapUtil;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +20,7 @@ public class PayOrderController extends WebApiController {
     private static final Logger logger = LoggerFactory.getLogger(PayOrderController.class);
     private static final String[] LEVELS = {"1", "2", "3", "4"};
     private static final String[] PAY_PROVIDER = {"Wxpay", "Alipay", "Accountpay", "Creditpay"};
+    private static final String[] TYPES = {"A", "O", "W"};
 
     public PayOrderController() {
         super(logger);
@@ -29,6 +29,7 @@ public class PayOrderController extends WebApiController {
     public void payOrderRequest() {
         try {
             Fetcher f = this.fetch();
+            logger.debug("payOrderRequest params = {}", f);
             String sessionkey = f.s("sessionkey");
             String typeId = f.s("type_id");
 //            int fee = f.i("fee", 0);
@@ -55,13 +56,17 @@ public class PayOrderController extends WebApiController {
                 params.put("currency_amount", levelInfo.i("level_count"));
                 params.put("type_id", levelInfo.i("level_id"));
                 params.put("currency_type_id", levelInfo.i("currency_type_id"));
+                params.put("purchase_Name", levelInfo.s("level_name"));
+                params.put("level_en", levelInfo.s("level_en"));
             }
+            params.put("provider", provider);
             params.put("sign_type", "MD5");
-            params.put("original_body", "");
-            params.put("original_detail", "");
-            PaymentOrder paymentOrder = payOrderService.payOrderRequst(userId, typeId, levelInfo.i("level_count"), provider,
+            PaymentOrder paymentOrder = payOrderService.payOrderRequst(userId, levelInfo.i("level_count"), provider,
                     getRealRemoteAddr(), params);
-            this.renderData(paymentOrder.getConf(), SUCCESS);
+            Map<String, String> info = paymentOrder.getConf();
+            info.remove("detail");
+            info.remove("body");
+            this.renderData(info, SUCCESS);
         } catch (Throwable t) {
             this.renderException("payOrderRequest", t);
         }
@@ -96,6 +101,25 @@ public class PayOrderController extends WebApiController {
             this.renderData(providers, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getPayOrderProvider", t);
+        }
+    }
+
+    public void getPayOrderList() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String type = f.s("t", "A");
+            int pageNumber = f.i("pageNumber", DEFAULT_PAGE_NUMBER);
+            int pageSize = f.i("pageSize", DEFAULT_PAGE_SIZE);
+            if (!Arrays.asList(TYPES).contains(type)) {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不正确");
+            }
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            PayOrderService payOrderService = this.getService(PayOrderService.class);
+            this.renderData(payOrderService.getPayOrderList(pageNumber, pageSize, userId, type), SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getPayOrderList", t);
         }
     }
 }

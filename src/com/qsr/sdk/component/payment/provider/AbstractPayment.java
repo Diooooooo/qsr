@@ -242,9 +242,13 @@ public abstract class AbstractPayment extends AbstractComponent implements
 
 	}
 
-	protected String getNotifyUrl(PaymentOrder order){
-		return UrlUtil.getUrl(order.getNotifyUrl(), this.getProvider().getProviderId());
+	protected String getNotifyUrl(PaymentOrder order, int providerId){
+		return UrlUtil.getUrl(order.getNotifyUrl(), providerId);
 	}
+
+	protected String getNotifyUrl(PaymentOrder order) {
+	    return UrlUtil.getUrl(order.getNotifyUrl(), null);
+    }
 
 	/*
 	 * (non-Javadoc)

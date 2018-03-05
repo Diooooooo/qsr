@@ -90,7 +90,7 @@ public class SeasonController extends WebApiController {
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }
             SeasonService seasonService = this.getService(SeasonService.class);
-            Map<String, Object> seasonInfo = seasonService.getSeasonInfo(seasonId);
+            Map<String, Object> seasonInfo = seasonService.getSeasonInfo(seasonId, userId);
             if (0 != userId) {
                 boolean is_attention = seasonService.isAttention(seasonInfo.get("season_id"), userId, ATTENTION_TYPE[0]);
                 seasonInfo.put("is_attention", is_attention);

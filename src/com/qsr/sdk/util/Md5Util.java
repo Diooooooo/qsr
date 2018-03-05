@@ -59,8 +59,11 @@ public class Md5Util {
 	}
 
 	public static String sign(Map<?, ?> params, String salt) {
+		return digest(concat(params, salt));
+	}
 
-		List<String> keys = new ArrayList<String>();
+	public static String concat(Map<?, ?> params, String salt) {
+	 List<String> keys = new ArrayList<String>();
 		for (Object o : params.keySet()) {
 			keys.add(o.toString());
 		}
@@ -82,9 +85,8 @@ public class Md5Util {
 			sb.append("&");
 			sb.append(salt);
 		}
-		return digest(sb.toString());
-
-	}
+		return sb.toString();
+    }
 
 	public static String getFileMd5(File file) throws IOException {
 		if (file.exists() == false || file.isFile() == false

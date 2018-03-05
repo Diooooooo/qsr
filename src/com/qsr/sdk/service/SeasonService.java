@@ -1,7 +1,6 @@
 package com.qsr.sdk.service;
 
 import com.jfinal.plugin.activerecord.Db;
-import com.jfinal.plugin.activerecord.Record;
 import com.qsr.sdk.jfinal.DbUtil;
 import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.service.exception.ServiceException;
@@ -23,13 +22,15 @@ public class SeasonService extends Service {
             "DATE_FORMAT(ts.season_start_play_time, \"%H:%i\") play_time, " +
             "ts.season_gameweek gameweek, ts.season_fs_a source_a, ts.season_fs_b source_b, " +
             "tss.status_name, tss.status_id, ts.season_id, DATE_FORMAT(ts.season_start_play_time, \"%Y-%m\") play_year," +
-            "DATE_FORMAT(ts.season_start_play_time, \"%m-%d\") play_month ";
+            "DATE_FORMAT(ts.season_start_play_time, \"%m-%d\") play_month, IF(ua.att_id != null, 1, 0) is_attention, " +
+            "IF(ts.season_start_play_time + INTERVAL 90 MINUTE <= NOW(), 1, 0) is_over ";
     private final static String FROM_SEASON_BY_SEASON_DATE_WIth_USER = "  FROM qsr_team_season ts " +
-                            "  INNER JOIN qsr_users_attention ua ON ua.target_id = ts.season_id " +
                             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
                             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
                             "  INNER JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
                             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
+                            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id " +
+                            "  AND ua.type_id = 1 AND ua.status_id = 1 " +
                             "  WHERE ua.user_id = ? " +
                             "  AND ua.type_id = 1 AND tss.is_attention = 1 " +
                             "  AND ts.season_start_play_time >= NOW() " +
@@ -39,6 +40,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
             "  INNER JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 " +
             "  WHERE ts.lea_id IN (1, 2, 3, 4, 5) " +
             "  AND ts.season_start_play_time >= NOW() " +
             "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
@@ -47,6 +49,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
             "  INNER JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 " +
             "  WHERE ts.lea_id = ? " +
             "  AND ts.season_start_play_time >= NOW() " +
             "  ORDER BY ts.season_start_play_time ASC";
@@ -59,11 +62,11 @@ public class SeasonService extends Service {
             "  AND YEAR(ts.season_start_play_time) = YEAR(NOW()) " +
             "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
     private final static String FROM_SEASON_BY_SEASON_DATE_WIth_USER_PREV = "  FROM qsr_team_season ts " +
-            "  INNER JOIN qsr_users_attention ua ON ua.target_id = ts.season_id " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
             "  INNER JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 " +
             "  WHERE ua.user_id = ? " +
             "  AND ua.type_id = 1 AND tss.is_attention = 1 " +
             "  AND ts.season_start_play_time < NOW() "+
@@ -73,6 +76,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
             "  INNER JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id AND ua.type_id = 1 AND ua.status_id = 1 " +
             "  WHERE ts.lea_id IN (1, 2, 3, 4, 5) " +
             "  AND ts.season_start_play_time < NOW() " +
             "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
@@ -81,6 +85,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
             "  INNER JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 " +
             "  WHERE ts.lea_id = ? " +
             "  AND ts.season_start_play_time < NOW() " +
             "  ORDER BY ts.season_start_play_time DESC";
@@ -102,12 +107,14 @@ public class SeasonService extends Service {
             "    ELSE 0 " +
             "  END AS home_team, s.season_id, t.team_icon a_icon, qt.team_icon b_icon, " +
             "  s.season_situation AS situation, s.season_analysis AS analysis, s.season_guess AS guess, " +
-            "  s.season_odds AS odds, IFNULL(s.season_live, \"\")  AS live, s.self_chatroom_id AS self, s.chatroom_id " +
+            "  s.season_odds AS odds, IFNULL(s.season_live, \"\")  AS live, s.self_chatroom_id AS self, s.chatroom_id," +
+            "  IF(ua.att_id != null, 1, 0) is_attention, IF(s.season_start_play_time + INTERVAL 90 MINUTE <= NOW(), 1, 0) is_over " +
             "FROM qsr_team_season s " +
             "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id " +
             "  INNER JOIN qsr_team t ON s.season_team_a = t.team_id " +
             "  INNER JOIN qsr_team qt ON qt.team_id = s.season_team_b " +
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = s.status_id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = s.season_id AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
             "WHERE s.season_id = ?";
     private final static String TEAM_SEASON_HISTORY_WITH_VS = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
@@ -281,9 +288,9 @@ public class SeasonService extends Service {
      * @param seasonId
      * @return
      */
-    public Map<String,Object> getSeasonInfo(int seasonId) throws ServiceException {
+    public Map<String,Object> getSeasonInfo(int seasonId, int userId) throws ServiceException {
         try {
-            Map<String, Object> info = record2map(Db.findFirst(SEASON_INFO, seasonId));
+            Map<String, Object> info = record2map(Db.findFirst(SEASON_INFO, userId, seasonId));
             if (null == info)
                 throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "参数不正确");
             return info;
@@ -346,7 +353,7 @@ public class SeasonService extends Service {
         }
     }
 
-    @CacheAdd(name = "playing", timeout = 5, timeUnit = TimeUnit.MINUTES)
+    @CacheAdd(name = "playing", timeout = 2, timeUnit = TimeUnit.MINUTES)
     public List<Map<String, Object>> getPlayingSeasons() throws ServiceException {
         try {
             return record2list(Db.find(SELECT_SEASON_PLAYING_SEASON));

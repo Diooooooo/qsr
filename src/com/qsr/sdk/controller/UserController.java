@@ -6,6 +6,7 @@ import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.service.*;
 import com.qsr.sdk.util.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,8 +16,10 @@ import java.util.*;
 public class UserController extends WebApiController {
 	final static Logger logger = LoggerFactory.getLogger(UserController.class);
 	private final static String FILE_PREFIX = "userfiles/";
+    private static final int[] TYPES = {0, 7, 14, 30, 90};
+    private static final String PREX = "P";
 
-	public UserController() {
+    public UserController() {
 		super(logger);
 	}
 
@@ -28,7 +31,7 @@ public class UserController extends WebApiController {
 	        String mobile = f.s("phone_number");
 	        String password = f.s("password");
 	        String confirm = f.s("confirm");
-	        String nickName = f.s("nick_name", "");
+	        String nickName = f.s("nick_name", PREX + mobile + System.currentTimeMillis());
 	        String userType = f.s("user_type", "qsr");
 	        String ip = this.getRemoteAddr();
 
@@ -287,9 +290,50 @@ public class UserController extends WebApiController {
 			hold.getFile().delete();
 			BindService bindService = this.getService(BindService.class);
 			bindService.bindIdCard(userId, name, number, frontdId, reverseId, holdId);
+			this.renderData(SUCCESS);
 		} catch (Throwable t) {
 			this.renderException("bindIDCard", t);
 		}
 	}
 
+	public void getBalanceLogLevel() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            List<Map<String, Object>> res = new ArrayList<>();
+            for (int i: TYPES) {
+                Map<String, Object> m = new HashMap<>();
+                m.put("id", i);
+                m.put("text", 0 == i ? "全部" : 7 == i ? "最近一周" : 14 == i ? "最近两周" : 30 == i ? "最近一个月" : 90 == i ? "最近两个月" : "");
+                res.add(m);
+            }
+            this.renderData(res, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getBalanceLogLevel", t);
+        }
+    }
+
+	public void getBalanceLog() {
+		try {
+		    Fetcher f = this.fetch();
+		    String sessionkey = f.s("sessionkey");
+		    int typeId = f.i("type");
+		    int pageNumber = f.i("pageNumber", 10);
+		    int pageSize = f.i("pageSize", 1);
+		    if (!ArrayUtils.contains(TYPES, typeId)) {
+		        throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "选取时间段不正确");
+            }
+		    UserService userService = this.getService(UserService.class);
+		    int userId = userService.getUserIdBySessionKey(sessionkey);
+		    PayOrderService payOrderService = this.getService(PayOrderService.class);
+		    int id = -1;
+		    for(int i = 0; i < TYPES.length ; i ++) {
+		        if (typeId == TYPES[i])
+		            id = i - 1;
+            }
+		    this.renderData(payOrderService.getSelfPayorders(userId, pageNumber, pageSize, id));
+		} catch (Throwable t) {
+			this.renderException("getBalanceLog", t);
+		}
+	}
 }

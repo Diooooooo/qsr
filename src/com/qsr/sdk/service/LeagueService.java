@@ -2,12 +2,14 @@ package com.qsr.sdk.service;
 
 import com.jfinal.plugin.activerecord.Db;
 import com.qsr.sdk.service.exception.ServiceException;
+import com.qsr.sdk.service.serviceproxy.annotation.CacheAdd;
 import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class LeagueService extends Service {
 
@@ -17,6 +19,7 @@ public class LeagueService extends Service {
     final static String FROM_FIVE = "FROM qsr_league l WHERE l.is_average = 0 ORDER BY l.sorted DESC";
     final static String FROM_AVERAGE = "FROM qsr_league l WHERE l.is_average = 1 ORDER BY l.sorted DESC";
 
+    @CacheAdd(timeUnit = TimeUnit.HOURS, timeout = 2)
     public List<Map<String, Object>> getAllLeagues() throws ServiceException {
         try {
             return record2list(Db.find(SELECT + FROM_All));
@@ -26,6 +29,7 @@ public class LeagueService extends Service {
         }
     }
 
+    @CacheAdd(timeUnit = TimeUnit.HOURS, timeout = 2)
     public List<Map<String, Object>> getFiveLeagues() throws ServiceException {
         try {
             return record2list(Db.find(SELECT + FROM_FIVE));
@@ -35,6 +39,7 @@ public class LeagueService extends Service {
         }
     }
 
+    @CacheAdd(timeUnit = TimeUnit.HOURS, timeout = 2)
     public List<Map<String, Object>> getAverageLeagues() throws ServiceException {
         try {
             return record2list(Db.find(SELECT + FROM_AVERAGE));

@@ -33,9 +33,7 @@ public class NumberPool {
         final long[] values = getValues(key);
 
         if (values[0] >= values[1]) {
-            Db.tx(new IAtom() {
-                @Override
-                public boolean run() throws SQLException {
+            Db.tx(() -> {
                     String sql = "select value,(value+increment_value) as next_value from tools_numberpool where name=? for update";
                     String sql1 = "update tools_numberpool set value=if((value+increment_value) < max_value, value+increment_value, 0) where name=?";
                     String sql2 = "insert tools_numberpool(name,value,increment_value) values(?,?,?) ";
@@ -50,7 +48,6 @@ public class NumberPool {
                         Db.update(sql2,key,values[1],default_increment);
                     }
                     return true;
-                }
             });
         }
         values[0]++;

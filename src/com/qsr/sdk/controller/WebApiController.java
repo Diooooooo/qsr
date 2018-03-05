@@ -6,10 +6,12 @@ import com.qsr.sdk.controller.fetcher.MultipartFetcher;
 import com.qsr.sdk.controller.fetcher.UrlEncodeFetcher;
 import com.qsr.sdk.controller.render.DataRender;
 import com.qsr.sdk.exception.ApiException;
+import com.qsr.sdk.exception.PaymentException;
 import com.qsr.sdk.service.Service;
 import com.qsr.sdk.service.ServiceManager;
 import com.qsr.sdk.util.Env;
 import com.qsr.sdk.util.StringUtil;
+import com.qsr.sdk.util.XmlUtil;
 import org.slf4j.Logger;
 
 import javax.servlet.http.HttpServletRequest;
@@ -92,6 +94,14 @@ public class WebApiController extends Controller {
         this.render(new DataRender(object, statusMessage));
     }
 
+    public void renderXml(Map<String, ?> m) {
+        try {
+            super.renderXml(XmlUtil.map2xml(m));
+        } catch (PaymentException e) {
+            logger.error("renderXml was error, exception={}", e);
+        }
+    }
+
     public Fetcher fetch(Fetcher fetcher) {
         this.fetcher = fetcher;
         fetcher.fetch();
@@ -135,4 +145,7 @@ public class WebApiController extends Controller {
     }
 
     protected final static String SUCCESS = "成功";
+
+    protected final static int DEFAULT_PAGE_NUMBER = 1;
+    protected final static int DEFAULT_PAGE_SIZE = 5;
 }
