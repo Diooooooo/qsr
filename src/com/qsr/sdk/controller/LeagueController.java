@@ -6,6 +6,8 @@ import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -33,6 +35,7 @@ public class LeagueController extends WebApiController {
             List<Map<String, Object>> leagues;
             if (1 == typeId) {
                 leagues = leagueService.getFiveLeagues();
+                buildLeague(leagues);
             } else if (2 == typeId) {
                 leagues = leagueService.getAverageLeagues();
             } else {
@@ -42,6 +45,23 @@ public class LeagueController extends WebApiController {
         } catch (Throwable e) {
             this.renderException("getLeagues", e);
         }
+    }
+
+    public void buildLeague(List<Map<String, Object>> leagues) {
+        Collections.reverse(leagues);
+        Map<String, Object> attetion = new HashMap<>();
+        Map<String, Object> all = new HashMap<>();
+        Map<String, Object> major = new HashMap<>();
+        attetion.put("leagueName", "关注");
+        attetion.put("leagueId", "-2");
+        all.put("leagueName", "全部");
+        all.put("leagueId", "-3");
+        major.put("leagueName", "重要");
+        major.put("leagueId", "0");
+        leagues.add(major);
+        leagues.add(all);
+        leagues.add(attetion);
+        Collections.reverse(leagues);
     }
 
 }

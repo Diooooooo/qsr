@@ -15,31 +15,35 @@ public class SportsManService extends Service {
                     "  IFNULL(s.sports_price, 0) AS sports_price, " +
                     "  sr.role_name AS location, sr.role_id, IFNULL(s.sports_country, \"\") AS sportsCountry, " +
                     "  IFNULL(s.sports_img, \"\") AS sportsImg, IFNULL(s.sports_birthday, \"\") AS sportsBirthday, " +
-                    "  IFNULL(s.sports_stature, \"\") as sportsStature, IFNULL(s.sports_weight, \"\") AS sportsWeight ";
+                    "  IFNULL(s.sports_stature, \"\") as sportsStature, IFNULL(s.sports_weight, \"\") AS sportsWeight," +
+                    "  IF(ua.att_id IS NOT NULL, 1, 0) is_attention ";
 
     private static final String SPORTSMAN_TEAM = "  FROM qsr_team_sportsman_relation r " +
                     "  INNER JOIN qsr_team t ON t.team_id = r.team_id " +
                     "  INNER JOIN qsr_team_sportsman s ON s.sports_id = r.sports_id " +
                     "  INNER JOIN qsr_team_sportsman_role sr ON sr.role_id = r.role_id " +
+                    "  LEFT JOIN qsr_users_attention ua ON ua.target_id = s.sports_id " +
+                    "AND ua.type_id = 2 AND ua.status_id = 1 AND ua.user_id = ? " +
                     "  WHERE t.team_id = ?";
     private static final String SPORTSMAN_INFO = "  FROM qsr_team_sportsman_relation r " +
             "  INNER JOIN qsr_team t ON t.team_id = r.team_id " +
             "  INNER JOIN qsr_team_sportsman s ON s.sports_id = r.sports_id " +
             "  INNER JOIN qsr_team_sportsman_role sr ON sr.role_id = r.role_id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = s.sports_id AND ua.type_id = 2 AND ua.status_id = 1 AND ua.user_id = ? " +
             "  WHERE s.sports_id = ?";
 
-    public List<Map<String, Object>> getSportsManByTeamId(int teamId) throws ServiceException {
+    public List<Map<String, Object>> getSportsManByTeamId(int teamId, int userId) throws ServiceException {
         try {
-            return record2list(Db.find(SELECT_SPORTSMAN_INFO + SPORTSMAN_TEAM, teamId));
+            return record2list(Db.find(SELECT_SPORTSMAN_INFO + SPORTSMAN_TEAM, userId, teamId));
         } catch (Throwable t) {
             logger.error("getSportsManByTeamId was error. teamId={}, exception={}", teamId, t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "球员加载失败", t);
         }
     }
 
-    public Map<String,Object> getSportsmanInfo(int sportsId) throws ServiceException {
+    public Map<String,Object> getSportsmanInfo(int sportsId, int userId) throws ServiceException {
         try {
-            return record2map(Db.findFirst(SELECT_SPORTSMAN_INFO + SPORTSMAN_INFO, sportsId));
+            return record2map(Db.findFirst(SELECT_SPORTSMAN_INFO + SPORTSMAN_INFO, userId, sportsId));
         } catch (Throwable t) {
             logger.error("getSportsmanInfo was error. exception = {}", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载球员信息失败", t);

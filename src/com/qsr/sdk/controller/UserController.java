@@ -93,8 +93,10 @@ public class UserController extends WebApiController {
 
 	        String sessionkey = f.s("sessionkey");
 	        UserService userService = this.getService(UserService.class);
+	        BalanceService balanceService = this.getService(BalanceService.class);
 	        int userId = userService.getUserIdBySessionKey(sessionkey);
 	        Map<String, Object> userInfo = userService.getUserInfo(userId);
+	        userInfo.put("balance", balanceService.getUserBalance(userId));
 	        this.renderData(userInfo, SUCCESS);
         } catch (Throwable e) {
 	        this.renderException("getUserProfile", e);

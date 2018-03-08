@@ -21,6 +21,12 @@ public interface Payment extends Component {
 	public PaymentOrder request(String paymentType, int fee, String clientIp,
 								Map<String, ?> req, String notifyUrl) throws PaymentException;
 
+	public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req,
+                                  String notifyUrl) throws PaymentException;
+
+    public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req)
+            throws PaymentException;
+
 	public PaymentResponse payOrder(Map<String, ?> resp) throws PaymentException;
 
 	public PaymentResponse response(Map<String, ?> resp)

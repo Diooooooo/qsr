@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -87,7 +88,7 @@ public class WeixinPayment extends AbstractPayment {
 		String paymentCode = response.get("prepay_id");
 		result.setPaymentCode(paymentCode);
 		sign = response.remove("sign");
-		String sign2 = Md5Util.sign(response, KEY).toUpperCase();
+		String sign2 = Md5Util.digest(Md5Util.concat(response, KEY)).toUpperCase();
 		if (!sign2.equals(sign)) {
 			logger.error("wxpay was error. the sign is not mime");
 			throw new PaymentException(ErrorCode.SIGN_ERROE, "微信数据签名错误");
@@ -95,7 +96,7 @@ public class WeixinPayment extends AbstractPayment {
 
 		String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
 		Map<String, Object> res = new HashMap<>();
-		res.put("APPID", APPID);
+		res.put("appid", APPID);
         res.put("partnerid", MCH_ID);
         res.put("prepayid", paymentCode);
         res.put("package", "Sign=WXPay");
@@ -113,7 +114,76 @@ public class WeixinPayment extends AbstractPayment {
 		return result;
 	}
 
-	public static final String resSign(Map<?, ?> maps) {
+    @Override
+    public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req, String notifyUrl) throws PaymentException {
+	    long paymentCodeSeq = createPaymentSeq();
+	    String orderNumber = (String) req.get("order_number");
+        PaymentOrder result = new PaymentOrder(orderNumber, createPaymentCode(paymentCodeSeq, fee), fee, paymentCodeSeq, new Date(), notifyUrl);
+        String nonce_str = Md5Util.digest("" + System.currentTimeMillis());
+        Map<String, Object> request = new HashMap<>();
+        request.put("appid", APPID);
+        request.put("mch_id", MCH_ID);
+        request.put("nonce_str", nonce_str);
+        request.put("body", req.get("purchase_Name"));
+        request.put("out_trade_no", orderNumber);
+        request.put("total_fee", fee);
+        request.put("spbill_create_ip", clientIp);
+        request.put("notify_url", UrlUtil.getUrl(notifyUrl, StringUtil.NULL_STRING));
+        request.put("trade_type", "APP");
+        String serializationRequest = Md5Util.concat(request, KEY);
+        String sign = Md5Util.digest(serializationRequest, Env.getCharset()).toUpperCase();
+        request.put("sign", sign);
+        String content = XmlUtil.map2xml(request);
+        String responseString;
+        try {
+            responseString = HttpUtil.post(ORDER_URL, content);
+        } catch (IOException e) {
+            logger.error("Payment was error. the internet was error, exception = {} ", e);
+            throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN, "创建微信订单时出现网络错误", e);
+        }
+        Map<String, String> response = XmlUtil.xml2map(responseString);
+        String returnCode = response.get("return_code");
+        String returnMsg = response.get("return_msg");
+        if (!RETURN_CODE_SUCCESS.equals(returnCode)) {
+            logger.error("create wxpay was error. the wxpay service is down");
+            throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN,
+                    "微信支付失败:" + returnCode + "," + returnMsg);
+        }
+        String paymentCode = response.get("prepay_id");
+        result.setPaymentCode(paymentCode);
+        sign = response.remove("sign");
+        String sign2 = Md5Util.digest(Md5Util.concat(response, KEY)).toUpperCase();
+        if (!sign2.equals(sign)) {
+            logger.error("wxpay was error. the sign is not mime");
+            throw new PaymentException(ErrorCode.SIGN_ERROE, "微信数据签名错误");
+        }
+
+        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
+        Map<String, Object> res = new HashMap<>();
+        res.put("appid", APPID);
+        res.put("partnerid", MCH_ID);
+        res.put("prepayid", paymentCode);
+        res.put("package", "Sign=WXPay");
+        res.put("noncestr", nonce_str);
+        res.put("timestamp", timestamp);
+        String resSign = Md5Util.digest(Md5Util.concat(res, KEY), Env.getCharset()).toUpperCase();
+        Map<String, String> conf = new HashMap<>();
+        conf.put("sign", resSign);
+        conf.put("body", serializationRequest);
+        conf.put("detail", content);
+        conf.put("nonce_str", nonce_str);
+        conf.put("timestamp", timestamp);
+        conf.put("prepay_id", paymentCode);
+        result.setConf(conf);
+        return result;
+    }
+
+    @Override
+    public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req) throws PaymentException {
+        return null;
+    }
+
+    public static final String resSign(Map<?, ?> maps) {
 	    return Md5Util.digest(Md5Util.concat(maps, KEY), Env.getCharset()).toUpperCase();
     }
 

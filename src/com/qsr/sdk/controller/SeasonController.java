@@ -41,6 +41,8 @@ public class SeasonController extends WebApiController {
             }
             SeasonService seasonService = this.getService(SeasonService.class);
             PageList<Map<String, Object>> seasons = seasonService.getSeasonListBySeasonDateWithPage(userId, id, pageNumber, pageSize);
+//            if (seasons.isEmpty())
+//                seasons = seasonService.getSeasonListBySeasonDateWithPagePrev(userId, id, pageNumber, pageSize);
             this.renderData(seasons, SUCCESS);
         } catch (Throwable t) {
             this.renderException("home", t);
@@ -52,6 +54,7 @@ public class SeasonController extends WebApiController {
      * id           -2          关注
      *              -1          彩票
      *               0          重要
+     *              -3          全部
      *             其他         对应联赛
      */
     public void prev() {
@@ -69,6 +72,8 @@ public class SeasonController extends WebApiController {
             }
             SeasonService seasonService = this.getService(SeasonService.class);
             PageList<Map<String, Object>> seasons = seasonService.getSeasonListBySeasonDateWithPagePrev(userId, id, pageNumber, pageSize);
+//            if (seasons.isEmpty())
+//                seasons = seasonService.getSeasonListBySeasonDateWithPage(userId, id, pageNumber, pageSize);
             this.renderData(seasons, SUCCESS);
         } catch (Throwable t) {
             this.renderException("prev", t);
@@ -91,12 +96,12 @@ public class SeasonController extends WebApiController {
             }
             SeasonService seasonService = this.getService(SeasonService.class);
             Map<String, Object> seasonInfo = seasonService.getSeasonInfo(seasonId, userId);
-            if (0 != userId) {
-                boolean is_attention = seasonService.isAttention(seasonInfo.get("season_id"), userId, ATTENTION_TYPE[0]);
-                seasonInfo.put("is_attention", is_attention);
-            } else if (0 == userId) {
-                seasonInfo.put("is_attention", false);
-            }
+//            if (0 != userId) {
+//                boolean is_attention = seasonService.isAttention(seasonInfo.get("season_id"), userId, ATTENTION_TYPE[0]);
+//                seasonInfo.put("is_attention", is_attention);
+//            } else if (0 == userId) {
+//                seasonInfo.put("is_attention", false);
+//            }
             this.renderData(seasonInfo, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSeasonInfo", t);

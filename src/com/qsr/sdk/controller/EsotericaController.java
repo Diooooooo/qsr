@@ -3,7 +3,9 @@ package com.qsr.sdk.controller;
 import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.lang.PageList;
+import com.qsr.sdk.service.BalanceService;
 import com.qsr.sdk.service.EsotericaService;
+import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.util.ErrorCode;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
@@ -28,9 +30,14 @@ public class EsotericaController extends WebApiController {
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
             PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListByLeagueId(pageNumber,
-                    pageSize, leagueId);
+                    pageSize, leagueId, userId);
             this.renderData(esotericas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsoterica", t);
@@ -44,7 +51,13 @@ public class EsotericaController extends WebApiController {
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListByUserId(pageNumber, pageSize, authorityId);
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
+            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListByUserId(pageNumber, pageSize, authorityId, userId);
             this.renderData(esotericas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaWithAuthority", t);
@@ -57,8 +70,14 @@ public class EsotericaController extends WebApiController {
             int authorityId = f.i("authority");
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaHistoryWithAuthorityPrev(pageNumber, pageSize, authorityId);
+            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaHistoryWithAuthorityPrev(pageNumber, pageSize, userId);
             this.renderData(esotericas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaWithAutorityPrev", t);
@@ -70,8 +89,13 @@ public class EsotericaController extends WebApiController {
             Fetcher f = this.fetch();
             int esotericaId = f.i("esotericaId");
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            Map<String, Object> info = esotericaService.getEsotericaInfo(esotericaId);
+            Map<String, Object> info = esotericaService.getEsotericaInfo(esotericaId, userId);
             this.renderData(info, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaInfo", t);
@@ -86,8 +110,13 @@ public class EsotericaController extends WebApiController {
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 5);
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> es = esotericaService.getEsotericaHistoryWithPage(pageNumber, pageSize, typeId);
+            PageList<Map<String, Object>> es = esotericaService.getEsotericaHistoryWithPage(pageNumber, pageSize, typeId, userId);
             this.renderData(es, SUCCESS);
         } catch (Throwable t) {
             this.renderException("home", t);
@@ -101,8 +130,14 @@ public class EsotericaController extends WebApiController {
             int typeId = f.i("typeId", -1);
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 5);
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListBySeasonId(pageNumber, pageSize, seasonId, typeId);
+            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListBySeasonId(pageNumber, pageSize, seasonId, typeId, userId);
             this.renderData(esotericas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaWithSeason", t);
@@ -111,8 +146,14 @@ public class EsotericaController extends WebApiController {
 
     public void getEsotericaTop() {
         try {
+            String sessionkey = fetch().s("sessionkey", StringUtil.NULL_STRING);
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> tops = esotericaService.getEsotericaTop(1, 5);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
+            PageList<Map<String, Object>> tops = esotericaService.getEsotericaTop(1, 5, userId);
             this.renderData(tops, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaTop", t);
@@ -125,8 +166,14 @@ public class EsotericaController extends WebApiController {
             int num = f.i("number");
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> params = esotericaService.getEsotericaListByParam(pageNumber, pageSize, num);
+            PageList<Map<String, Object>> params = esotericaService.getEsotericaListByParam(pageNumber, pageSize, num, userId);
             this.renderData(params, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaWithParam", t);
@@ -139,6 +186,12 @@ public class EsotericaController extends WebApiController {
             String t = f.s("sporttery");
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             if (Arrays.asList(SPORTTERYS).contains(t)) {
                 String type = SPORTTERYS[0].equalsIgnoreCase(t) ? "1" : SPORTTERYS[1].equalsIgnoreCase(t)
                         ? "3" : SPORTTERYS[2].equalsIgnoreCase(t) ? "2" : SPORTTERYS[3].equalsIgnoreCase(t)
@@ -147,7 +200,7 @@ public class EsotericaController extends WebApiController {
                     throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不合法");
                 } else {
                     EsotericaService esotericaService = this.getService(EsotericaService.class);
-                    PageList<Map<String, Object>> sportteries = esotericaService.getEsotericaListBySporttery(pageNumber, pageSize, type);
+                    PageList<Map<String, Object>> sportteries = esotericaService.getEsotericaListBySporttery(pageNumber, pageSize, type, userId);
                     this.renderData(sportteries, SUCCESS);
                 }
             } else {
@@ -187,8 +240,14 @@ public class EsotericaController extends WebApiController {
             int pageNumber = f.i("pageNumber", 1);
             int pageSize = f.i("pageSize", 10);
             int sportteryId = f.i("sportteryId");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListByHot(pageNumber, pageSize, sportteryId);
+            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaListByHot(pageNumber, pageSize, sportteryId, userId);
             this.renderData(esotericas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaWithHot", t);
@@ -199,8 +258,14 @@ public class EsotericaController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             String issue = f.s("issue");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            List<Map<String, Object>> esotericas = esotericaService.getEsotericaListWithIssue(issue);
+            List<Map<String, Object>> esotericas = esotericaService.getEsotericaListWithIssue(issue, userId);
             this.renderData(esotericas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaWithAllSeason", t);
@@ -214,8 +279,14 @@ public class EsotericaController extends WebApiController {
             int typeId = f.i("type");
             int pageNumber = f.i("pageNumber");
             int pageSize = f.i("pageSize");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaWithTypeAndIssue(pageNumber, pageSize, issue, typeId);
+            PageList<Map<String, Object>> esotericas = esotericaService.getEsotericaWithTypeAndIssue(pageNumber, pageSize, issue, typeId, userId);
             this.renderData(esotericas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getEsotericaWithTypeAndIssue", t);
@@ -231,6 +302,23 @@ public class EsotericaController extends WebApiController {
             this.renderData(info, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSportteryInfo", t);
+        }
+    }
+
+    public void payEsoterica() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            int esotrica_id = f.i("esoterica_id");
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            BalanceService balanceService = this.getService(BalanceService.class);
+            if (!balanceService.check(userId, esotrica_id))
+                throw new ApiException(ErrorCode.DATA_VERIFYDATA_ERROR, "账户余额不足");
+            balanceService.payEsoterica(userId, esotrica_id);
+            this.renderData(SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("payEsoterica", t);
         }
     }
 }

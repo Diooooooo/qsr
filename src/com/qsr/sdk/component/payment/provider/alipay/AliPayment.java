@@ -144,7 +144,17 @@ public class AliPayment extends AbstractPayment {
 		return result;
 	}
 
-	public String getSign(Map<String, ?> param) throws PaymentException {
+    @Override
+    public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req, String notifyUrl) throws PaymentException {
+        return null;
+    }
+
+    @Override
+    public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req) throws PaymentException {
+        return null;
+    }
+
+    public String getSign(Map<String, ?> param) throws PaymentException {
 		String requestParam = "partner=\"" + param.get("partner") + "\"";//合作者
 		requestParam += "&seller_id=\"" + param.get("seller_id") + "\"";//合作者id
 		requestParam += "&out_trade_no=\"" + param.get("order_no") + "\"";//外部订单号

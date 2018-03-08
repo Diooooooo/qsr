@@ -1,5 +1,6 @@
 package com.qsr.sdk.controller;
 
+import cn.jpush.api.report.UsersResult;
 import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.service.ChannelService;
@@ -28,9 +29,15 @@ public class EntryController extends WebApiController {
     public void getSpecialists() {
         try {
             Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             logger.debug("getSpecialists params = {} ", f);
+            int userId = 0;
             EntryService entryService = this.getService(EntryService.class);
-            List<Map<String, Object>> specialists = entryService.getEntryList();
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
+            List<Map<String, Object>> specialists = entryService.getEntryList(userId);
             this.renderData(specialists, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSpecialist", t);
@@ -41,9 +48,15 @@ public class EntryController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             int pageNumber = f.i("pageNumber", 1);
-            int pageSize = f.i("pageSize", 5);
+            int pageSize = f.i("pageSize", 6);
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
             EntryService entryService = this.getService(EntryService.class);
-            List<Map<String, Object>> specialists = entryService.getEntryListWithAI(pageNumber, pageSize);
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
+            List<Map<String, Object>> specialists = entryService.getEntryListWithAI(userId, pageNumber, pageSize);
             this.renderData(specialists, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSpecialistWithAI", t);
@@ -53,10 +66,16 @@ public class EntryController extends WebApiController {
     public void getSpecialistWithStar() {
         try {
             Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             int pageNumber = f.i("pageNumber", 1);
-            int pageSize = f.i("pageSize", 5);
+            int pageSize = f.i("pageSize", 6);
+            int userId = 0;
             EntryService entryService = this.getService(EntryService.class);
-            List<Map<String, Object>> specialists = entryService.getEntryListWithStar(pageNumber, pageSize);
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
+            List<Map<String, Object>> specialists = entryService.getEntryListWithStar(userId, pageNumber, pageSize);
             this.renderData(specialists, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSpecialistWithStar", t);

@@ -1,8 +1,10 @@
 package com.qsr.sdk.controller;
 
+import cn.jpush.api.report.UsersResult;
 import com.qsr.sdk.component.payment.PaymentOrder;
 import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.exception.ApiException;
+import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.lang.Parameter;
 import com.qsr.sdk.service.PayOrderService;
 import com.qsr.sdk.service.UserService;
@@ -117,9 +119,60 @@ public class PayOrderController extends WebApiController {
             UserService userService = this.getService(UserService.class);
             int userId = userService.getUserIdBySessionKey(sessionkey);
             PayOrderService payOrderService = this.getService(PayOrderService.class);
-            this.renderData(payOrderService.getPayOrderList(pageNumber, pageSize, userId, type), SUCCESS);
+            PageList<Map<String, Object>> pay = payOrderService.getPayOrderList(pageNumber, pageSize, userId, type);
+            this.renderData(pay, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getPayOrderList", t);
+        }
+    }
+
+    public void rePay() {
+        try {
+            Fetcher f = this.fetch();
+            String orderNumber = f.s("order_number");
+            String sessionkey = f.s("sessionkey");
+            String provider = f.s("provider", PAY_PROVIDER[0]);
+            if (!Arrays.asList(PAY_PROVIDER).contains(provider)) {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "支付方式不正确");
+            }
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            PayOrderService payOrderService = this.getService(PayOrderService.class);
+            PaymentOrder paymentOrder = payOrderService.rePayOrderRequest(userId, orderNumber, provider,
+                    getRealRemoteAddr(), new HashMap<>());
+            this.renderData(paymentOrder.getConf(), SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("rePay", t);
+        }
+    }
+
+    public void cancelPayOrder() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String requestId = f.s("order_number");
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            PayOrderService payOrderService = this.getService(PayOrderService.class);
+            payOrderService.cancelPayOrder(userId, requestId);
+            this.renderData(SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("cancelPayOrder", t);
+        }
+    }
+
+    public void delPayOrder() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String requestId = f.s("order_number");
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            PayOrderService payOrderService = this.getService(PayOrderService.class);
+            payOrderService.delPayOrder(userId, requestId);
+            this.renderData(SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("delPayOrder", t);
         }
     }
 }

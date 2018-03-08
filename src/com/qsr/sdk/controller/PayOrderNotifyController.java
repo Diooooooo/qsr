@@ -23,7 +23,7 @@ public class PayOrderNotifyController extends WebApiController {
     public void payNotify() {
         try {
             String res = HttpKit.readIncommingRequestData(this.getRequest());
-            logger.error("payNotify response = {} ", res);
+            logger.debug("payNotify response = {} ", res);
             if (StringUtil.NULL_STRING == res) {
                 throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不完整");
             }
@@ -41,9 +41,7 @@ public class PayOrderNotifyController extends WebApiController {
                     // 交易成功
                     if (SUCCESS.equals(resultCode)) {
                         String sign = resMap.remove("sign");
-                        String openid = resMap.remove("openid");
-                        resMap.remove("return_code");
-                        resMap.remove("result_code");
+                        String openid = resMap.get("openid");
                         String resSign = WeixinPayment.resSign(resMap);
                         int statusId = 4;
                         Map<String, Object> providerInfo = payOrderService.getProviderInfo(provider);
