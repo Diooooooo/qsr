@@ -21,7 +21,7 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_team_season_esoterica_status ts ON e.status_id = ts.status_id " +
             "  INNER JOIN qsr_clientui_entry cu ON e.esoterica_author = cu.user_id " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = e.esoterica_id AND ua.status_id = 1 AND ua.type_id = 1 AND ua.user_id = ? " +
-            "  WHERE e.esoterica_id = ? AND e.enabled = 1 ";
+            "  WHERE e.esoterica_no = ? AND e.enabled = 1 ";
     private static final String ESOTERICA_SELECT_LIST = "SELECT IFNULL(u.head_img_url, '') head_img_url, " +
             "  u.nickname, 0 AS rate_return, " +
             "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, " +
@@ -31,7 +31,7 @@ public class EsotericaService extends Service {
     private static final String ESOTERICA_SELECT_LIST_V2 = "SELECT IFNULL(u.head_img_url, cu.icon) head_img_url, u.nickname, " +
             "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, " +
             "  DATE_FORMAT(e.esoterica_date, '%m-%d %H:%i') t, IFNULL(cu.description, '') _desc, " +
-            "  e.esoterica_price price, e.esoterica_id, e.status_id, e.esoterica_author, et.type_name, et.type_id, " +
+            "  e.esoterica_price price, e.esoterica_no esoterica_id, e.status_id, e.esoterica_author, et.type_name, et.type_id, " +
             "  ts.status_id ts_id, ts.status_name, IF(ua.att_id != null, 1, 0) is_attention ";
     private static final String ESOTERICA_FROM = "FROM qsr_team_season_esoterica e " +
             "  INNER JOIN qsr_team_season_esoterica_status ts ON e.status_id = ts.status_id " +
@@ -198,9 +198,12 @@ public class EsotericaService extends Service {
         }
     }
 
-    public Map<String,Object> getEsotericaInfo(int esotericaId, int userId) throws ServiceException {
+    public Map<String,Object> getEsotericaInfo(String esotericaId, int userId) throws ServiceException {
         try {
             Record r = Db.findFirst(ESOTERICA_SELECT_LIST_V2 + ESOTERICA_INFO, userId, esotericaId);
+            if (null == r)
+                throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "未查询到相关锦囊",
+                        new NullPointerException());
             getItemRecord(r);
             return record2map(r);
         } catch (Throwable t) {

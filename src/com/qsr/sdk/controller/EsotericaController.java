@@ -87,7 +87,7 @@ public class EsotericaController extends WebApiController {
     public void getEsotericaInfo() {
         try {
             Fetcher f = this.fetch();
-            int esotericaId = f.i("esotericaId");
+            String esotericaId = f.s("esotericaId");
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             int userId = 0;
             if (null != sessionkey) {
@@ -309,13 +309,15 @@ public class EsotericaController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             String sessionkey = f.s("sessionkey");
-            int esotrica_id = f.i("esoterica_id");
+            String esotrica_id = f.s("esoterica_id");
             UserService userService = this.getService(UserService.class);
             int userId = userService.getUserIdBySessionKey(sessionkey);
             BalanceService balanceService = this.getService(BalanceService.class);
-            if (!balanceService.check(userId, esotrica_id))
+            long pay = balanceService.orderEsoterica(userId, esotrica_id);
+            if (!balanceService.check(userId, esotrica_id)) {
                 throw new ApiException(ErrorCode.DATA_VERIFYDATA_ERROR, "账户余额不足");
-            balanceService.payEsoterica(userId, esotrica_id);
+            }
+            balanceService.payEsoterica(userId, esotrica_id, pay);
             this.renderData(SUCCESS);
         } catch (Throwable t) {
             this.renderException("payEsoterica", t);
