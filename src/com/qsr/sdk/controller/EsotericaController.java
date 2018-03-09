@@ -8,6 +8,7 @@ import com.qsr.sdk.service.EsotericaService;
 import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.util.ErrorCode;
 import com.qsr.sdk.util.StringUtil;
+import org.kie.api.task.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +19,7 @@ import java.util.Map;
 public class EsotericaController extends WebApiController {
     final static Logger logger = LoggerFactory.getLogger(EsotericaController.class);
     private static final String[] SPORTTERYS = {"ZC", "RJ", "SF", "YP"};
+    private static final String[] TYPES = {"A", "O", "W", "C"};
 
     public EsotericaController() {
         super(logger);
@@ -317,10 +319,93 @@ public class EsotericaController extends WebApiController {
             if (!balanceService.check(userId, esotrica_id)) {
                 throw new ApiException(ErrorCode.DATA_VERIFYDATA_ERROR, "账户余额不足");
             }
-            balanceService.payEsoterica(userId, esotrica_id, pay);
-            this.renderData(SUCCESS);
+            if (balanceService.payEsoterica(userId, esotrica_id, pay))
+                this.renderData(SUCCESS);
+            else
+                throw new ApiException(ErrorCode.DATA_VERIFYDATA_ERROR, "购买锦囊失败");
         } catch (Throwable t) {
             this.renderException("payEsoterica", t);
+        }
+    }
+
+    public void getEsotericaListWithPayUser() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String type = f.s("type", "A");
+            int pageNumber = f.i("pageNumber", 1);
+            int pageSize = f.i("pageSize", 10);
+            if (!Arrays.asList(TYPES).contains(type)) {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不正确");
+            }
+            int typeId;
+            if (type.equalsIgnoreCase(TYPES[0])) {
+                typeId = 0;
+            } else if (type.equalsIgnoreCase(TYPES[1])) {
+                typeId = 1;
+            } else if (type.equalsIgnoreCase(TYPES[2])){
+                typeId = 2;
+            } else {
+                typeId = 3;
+            }
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            this.renderData(esotericaService.getEsotericaListWithPayUser(userId, typeId, pageNumber, pageSize), SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getEsotericaListWithPayUser", t);
+        }
+    }
+
+    public void repayEsoterica() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String esotericaId = f.s("esoterica_id");
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            BalanceService balanceService = this.getService(BalanceService.class);
+            if (!balanceService.checkWithEsoterica(userId, esotericaId)) {
+                throw new ApiException(ErrorCode.DATA_VERIFYDATA_ERROR, "账户余额不足");
+            }
+            boolean flag = esotericaService.repayEsoterica(userId, esotericaId);
+            if (flag)
+                this.renderData(SUCCESS);
+            else
+                throw new ApiException(ErrorCode.DATA_VERIFYDATA_ERROR, "支付失败");
+        } catch (Throwable t) {
+            this.renderException("repayEsoterica", t);
+        }
+    }
+
+    public void delEsoterica() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String esotericaId = f.s("esoterica_id");
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            esotericaService.delEsoterica(userId, esotericaId);
+            this.renderData(SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("delEsoterica", t);
+        }
+    }
+
+    public void cancelEsoterica() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String esotericaId = f.s("esoterica_id");
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            esotericaService.cancelEsoterica(userId, esotericaId);
+            this.renderData(SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("cancelEsoterica", t);
         }
     }
 }

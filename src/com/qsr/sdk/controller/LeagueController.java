@@ -6,10 +6,7 @@ import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class LeagueController extends WebApiController {
 
@@ -35,7 +32,7 @@ public class LeagueController extends WebApiController {
             List<Map<String, Object>> leagues;
             if (1 == typeId) {
                 leagues = leagueService.getFiveLeagues();
-                buildLeague(leagues);
+                leagues = buildLeague(leagues);
             } else if (2 == typeId) {
                 leagues = leagueService.getAverageLeagues();
             } else {
@@ -47,8 +44,8 @@ public class LeagueController extends WebApiController {
         }
     }
 
-    public void buildLeague(List<Map<String, Object>> leagues) {
-        Collections.reverse(leagues);
+    public List<Map<String, Object>> buildLeague(List<Map<String, Object>> leagues) {
+        List<Map<String, Object>> n = new ArrayList<>();
         Map<String, Object> attetion = new HashMap<>();
         Map<String, Object> all = new HashMap<>();
         Map<String, Object> major = new HashMap<>();
@@ -58,10 +55,11 @@ public class LeagueController extends WebApiController {
         all.put("leagueId", "-3");
         major.put("leagueName", "重要");
         major.put("leagueId", "0");
-        leagues.add(major);
-        leagues.add(all);
-        leagues.add(attetion);
-        Collections.reverse(leagues);
+        n.add(attetion);
+        n.add(major);
+        n.add(all);
+        n.addAll(leagues);
+        return n;
     }
 
 }

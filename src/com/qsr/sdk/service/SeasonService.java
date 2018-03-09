@@ -32,9 +32,9 @@ public class SeasonService extends Service {
                             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id " +
                             "  AND ua.type_id = 1 AND ua.status_id = 1 " +
                             "  WHERE ua.user_id = ? " +
-                            "  AND ua.type_id = 1 AND tss.is_attention = 1 " +
+                            "  AND ua.type_id = 1 " +
                             "  AND ts.season_start_play_time >= NOW() " +
-                            "  ORDER BY ua.createtime DESC";
+                            "  ORDER BY ua.createtime ASC";
     private final static String FROM_SEASON_BY_LEAGUE = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
@@ -43,7 +43,7 @@ public class SeasonService extends Service {
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
             "  WHERE ts.lea_id IN (1, 2, 3, 4, 5) " +
             "  AND ts.season_start_play_time >= NOW() " +
-            "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
+            "  ORDER BY ts.season_year DESC, ts.season_gameweek ASC";
     private final static String FROM_SEASON_BY_LEAGUE_ID = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
@@ -68,7 +68,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ?" +
-            "  WHERE ua.type_id = 1 AND tss.is_attention = 1 " +
+            "  WHERE ua.type_id = 1 " +
             "  AND ts.season_start_play_time < NOW() "+
             "  ORDER BY ua.createtime DESC";
     private final static String FROM_SEASON_BY_LEAGUE_PREV = "FROM qsr_team_season ts " +
@@ -96,7 +96,7 @@ public class SeasonService extends Service {
             "  LEFT JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  WHERE ts.season_team_a = ? OR ts.season_team_b = ? " +
             "  AND ts.season_start_play_time >= NOW() " +
-            "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
+            "  ORDER BY ts.season_year DESC, ts.season_gameweek ASC";
     private final static String SEASON_INFO = "SELECT l.lea_name AS leagueName, s.season_start_play_time playTime, t.team_name AS teamA, " +
             "  s.season_team_a as teamAId, qt.team_name AS teamB, s.season_team_b AS teamBId," +
             "  IFNULL(s.season_fs_a, 0) AS scoreA, IFNULL(s.season_fs_b, 0) AS scoreB, s.season_gameweek AS gameweek, " +
@@ -169,7 +169,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
             "  WHERE ts.season_start_play_time >= NOW() " +
-            "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
+            "  ORDER BY ts.season_year DESC, ts.season_gameweek ASC";
     private static final String FROM_SEASON_ALL_BY_PREV = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
@@ -178,6 +178,23 @@ public class SeasonService extends Service {
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
             "  WHERE ts.season_start_play_time < NOW() " +
             "  ORDER BY ts.season_year DESC, ts.season_gameweek DESC";
+    private static final String SELECT_SEASON_LIST_BY_LEAGUE_ID_WITH_YEAR = "SELECT l.lea_name, a.team_name team_a, " +
+            "  a.team_id team_a_id, b.team_name team_b, b.team_id team_b_id, IFNULL(a.team_icon, '') a_icon, " +
+            "  IFNULL(b.team_icon, '') b_icon, t.type_name, IFNULL(st.sub_type_name, '') sub_type_name," +
+            "  ss.status_name, ss.status_id, s.season_start_play_time, " +
+            "  DATE_FORMAT(s.season_start_play_time, '%H:%i') play_time, " +
+            "  DATE_FORMAT(s.season_start_play_time, '%m-%d') play_month, " +
+            "  DATE_FORMAT(s.season_start_play_time, '%Y') play_year, " +
+            "  s.season_gameweek gameweek, s.season_fs_a source_a, s.season_fs_b source_b, s.season_id " +
+            "  FROM qsr_team_season s " +
+            "  INNER JOIN qsr_team a ON s.season_team_a = a.team_id " +
+            "  INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +
+            "  INNER JOIN qsr_league l ON s.lea_id = l.lea_id " +
+            "  INNER JOIN qsr_team_season_status ss ON s.status_id = ss.status_id " +
+            "  INNER JOIN qsr_team_season_type t ON s.type_id = t.type_id " +
+            "  LEFT JOIN qsr_team_season_sub_type st ON s.sub_type_id = st.sub_type_id " +
+            "  WHERE s.lea_id = ? AND YEAR(s.season_year) = ? " +
+            "ORDER BY s.season_start_play_time DESC";
 
     /**
      * 根据联赛Id获取赛程
@@ -364,6 +381,15 @@ public class SeasonService extends Service {
     public List<Map<String, Object>> getSeasonListByLeagueId(int leagueId) throws ServiceException {
         try {
             return record2list(Db.find(SELECT_SEASON_LIST_BY_LEAGUE_ID, leagueId));
+        } catch (Throwable t) {
+            logger.error("getSeasonListByLeagueId was error, exception = {}",t );
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "历史加载失败", t);
+        }
+    }
+
+    public List<Map<String, Object>> getSeasonListByLeagueId(int leagueId, String year) throws ServiceException {
+        try {
+            return record2list(Db.find(SELECT_SEASON_LIST_BY_LEAGUE_ID_WITH_YEAR, leagueId, year));
         } catch (Throwable t) {
             logger.error("getSeasonListByLeagueId was error, exception = {}",t );
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "历史加载失败", t);

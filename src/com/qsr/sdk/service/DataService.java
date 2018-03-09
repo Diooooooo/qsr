@@ -1,6 +1,7 @@
 package com.qsr.sdk.service;
 
 import com.jfinal.plugin.activerecord.Db;
+import com.qsr.sdk.lang.Parameter;
 import com.qsr.sdk.service.exception.ServiceException;
 import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.Logger;
@@ -33,6 +34,7 @@ public class DataService extends Service {
             "ORDER BY i.item_source DESC;";
 
     private final static int RANKING_GROUP_SOURCE = 1;
+    private static final String IS_SCORE = "SELECT l.is_score isScore FROM qsr_league l WHERE l.lea_id = ? ";
 
 
     public List<Map<String, Object>> getDataList() throws ServiceException {
@@ -77,6 +79,15 @@ public class DataService extends Service {
         } catch (Throwable t) {
             logger.error("getSeasonItem was error, leagueId = {}, exception = {}", leagueId, t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "积分榜加载失败", t);
+        }
+    }
+
+    public boolean isScore(int leagueId) throws ServiceException {
+        try {
+            return new Parameter(record2map(Db.findFirst(IS_SCORE, leagueId))).b("isScore");
+        } catch (Throwable t) {
+            logger.error("isScore was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载数据失败", t);
         }
     }
 }

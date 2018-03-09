@@ -184,6 +184,39 @@ public class EsotericaService extends Service {
             "  FROM qsr_clientui_entry e " +
             "  INNER JOIN qsr_users u ON e.user_id = u.id " +
             "  WHERE e.user_id = ?";
+    private static final String SELECT_ESOTERICA_LIST = "SELECT pe.order_number, e.esoterica_title, e.esoterica_price, pe.createtime, s.status_name esotericaStatus, es.status_name payStatus ";
+    private static final String ESOTERICA_FROM_PAY_USER = "FROM qsr_pay_esoterica pe " +
+            "INNER JOIN qsr_pay_esoterica_status es ON pe.status_id = es.status_id " +
+            "INNER JOIN qsr_team_season_esoterica e ON pe.esoterica_no = e.esoterica_no " +
+            "INNER JOIN qsr_team_season_esoterica_status s ON s.status_id = e.status_id " +
+            "WHERE pe.user_id = ? AND pe.enabled = 1 ORDER BY pe.createtime DESC ";
+    private static final String ESOTERICA_FROM_PAY_USER_TYPE = "FROM qsr_pay_esoterica pe " +
+            "INNER JOIN qsr_team_season_esoterica e ON pe.esoterica_no = e.esoterica_no " +
+            "INNER JOIN qsr_team_season_esoterica_status s ON s.status_id = e.status_id " +
+            "WHERE pe.user_id = ? AND pe.status_id = ? AND pe.enabled = 1 ORDER BY pe.createtime DESC ";
+    private static final String REPAY_ESOTERICA = "UPDATE qsr_pay_esoterica e " +
+            "  INNER JOIN qsr_users u ON u.id = e.user_id " +
+            "  SET e.status_id = 1 WHERE e.user_id = ? AND e.order_number = ? AND e.enabled = 1 AND e.status_id = 2";
+    private static final String DEL_ESOTERICA = "UPDATE qsr_pay_esoterica e " +
+            "  INNER JOIN qsr_users u ON e.user_id = u.id " +
+            "  SET e.enabled = 0 WHERE u.id = ? AND e.order_number = ? AND e.enabled = 1 ";
+    private static final String CANCEL_ESOTERICA = "UPDATE qsr_pay_esoterica e " +
+            "  INNER JOIN qsr_users u ON u.id = e.user_id " +
+            "  SET e.status_id = 3 WHERE u.id = ? AND e.order_number = ? AND e.enabled = 1 and e.status_id = 2";
+    private static final String REPAY_BALANCE_LOG = "INSERT qsr_user_balance_log(user_id, type, " +
+            "  currency_type_id, income, block, balance, description, cause_id, cause_type_id) " +
+            "  SELECT i.userId, 1, 3, 0 - se.esoterica_price, b.block, b.balance - se.esoterica_price, i.description, i.causeId, i.causeTypeId " +
+            "  FROM (SELECT ? AS userId, ? AS orderNumber, ? AS description, ? AS causeId, ? AS causeTypeId) i " +
+            "  INNER JOIN qsr_users u ON i.userId = u.id " +
+            "  INNER JOIN qsr_pay_esoterica e ON e.order_number = i.orderNumber " +
+            "  INNER JOIN qsr_team_season_esoterica se ON se.esoterica_no = e.esoterica_no " +
+            "  INNER JOIN qsr_user_balance b ON u.id = b.user_id AND b.currency_type_id = 3";
+    private static final String REPAY_BALANCE = "UPDATE qsr_user_balance b " +
+            "INNER JOIN (SELECT ? AS userId, ? AS orderNumber) i ON b.user_id = i.userId AND b.currency_type_id = 3 " +
+            "INNER JOIN qsr_pay_esoterica pe ON pe.order_number = i.orderNumber AND pe.user_id = i.userId " +
+            "AND pe.enabled = 1 AND pe.status_id = 1 " +
+            "INNER JOIN qsr_team_season_esoterica se ON se.esoterica_no = pe.esoterica_no " +
+            "SET b.balance = b.balance - se.esoterica_price ";
 
     public PageList<Map<String, Object>> getEsotericaListByLeagueId(int pageNumber, int pageSize, int leagueId, int userId)
             throws ServiceException {
@@ -385,6 +418,53 @@ public class EsotericaService extends Service {
             return record2map(Db.findFirst(ESOTERICA_SPORTTERY_INFO, id));
         } catch (Throwable t) {
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载专家信息失败", t);
+        }
+    }
+
+    public PageList<Map<String, Object>> getEsotericaListWithPayUser(int userId, int typeId, int pageNumber, int pageSize) throws ServiceException {
+        try {
+            PageList<Map<String, Object>> ls;
+            if (typeId == 0)
+                ls = page2PageList(DbUtil.paginate(pageNumber, pageSize, SELECT_ESOTERICA_LIST,
+                        ESOTERICA_FROM_PAY_USER, userId));
+            else
+                ls = page2PageList(DbUtil.paginate(pageNumber, pageSize, SELECT_ESOTERICA_LIST,
+                        ESOTERICA_FROM_PAY_USER_TYPE, userId, typeId));
+            return ls;
+        } catch (Throwable t) {
+            logger.error("getEsotericaListWithPayUser was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载已购列表失败", t);
+        }
+    }
+
+    public boolean repayEsoterica(int userId, String esotericaId) throws ServiceException {
+        try {
+            long[] repay = {0};
+            return Db.tx(() -> DbUtil.update(REPAY_ESOTERICA, repay, userId, esotericaId) > 0
+                      && Db.update(REPAY_BALANCE_LOG, userId, esotericaId, "购买锦囊", repay[0], 2) > 0
+                      && Db.update(REPAY_BALANCE, userId, esotericaId) > 0
+            );
+        } catch (Throwable t) {
+            logger.error("repayEsoterica was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "购买锦囊失败", t);
+        }
+    }
+
+    public boolean delEsoterica(int userId, String esotericaId) throws ServiceException {
+        try {
+            return Db.update(DEL_ESOTERICA, userId, esotericaId) > 0;
+        } catch (Throwable t) {
+            logger.error("delEsoterica was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "删除锦囊订单失败", t);
+        }
+    }
+
+    public boolean cancelEsoterica(int userId, String esotericaId) throws ServiceException {
+        try {
+            return Db.update(CANCEL_ESOTERICA, userId, esotericaId) > 0;
+        } catch (Throwable t) {
+            logger.error("cancelEsoterica was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "取消锦囊订单失败", t);
         }
     }
 }

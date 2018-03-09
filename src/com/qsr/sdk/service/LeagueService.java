@@ -15,10 +15,11 @@ import java.util.concurrent.TimeUnit;
 public class LeagueService extends Service {
 
     final static Logger logger = LoggerFactory.getLogger(LeagueService.class);
-    final static String SELECT = "SELECT l.lea_name leagueName, l.lea_id leagueId ";
+    final static String SELECT = "SELECT l.lea_name leagueName, l.lea_id leagueId, IFNULL(l.description, '') desc_ ";
     final static String FROM_All = "FROM qsr_league l ORDER BY l.sorted DESC";
     final static String FROM_FIVE = "FROM qsr_league l ORDER BY l.sorted DESC";
     final static String FROM_AVERAGE = "FROM qsr_league l WHERE l.is_average = 1 ORDER BY l.sorted DESC";
+    private static final String LEAGUE_INFO = "FROM qsr_league l WHERE l.lea_id = ? ";
 
     @CacheAdd(timeUnit = TimeUnit.HOURS, timeout = 2)
     public List<Map<String, Object>> getAllLeagues() throws ServiceException {
@@ -47,6 +48,18 @@ public class LeagueService extends Service {
         } catch (Throwable t) {
             logger.error("getAverageLeagues was error. exception={}", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "消息加载失败", t);
+        }
+    }
+
+    public Map<String, Object> getLeagueInfo(int leagueId) throws ServiceException {
+        try {
+            Map<String, Object> info = record2map(Db.findFirst(SELECT + LEAGUE_INFO, leagueId));
+            if (null == info)
+                throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛事失败");
+            return info;
+        } catch (Throwable t) {
+            logger.error("getLeagueInfo was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛事失败", t);
         }
     }
 }
