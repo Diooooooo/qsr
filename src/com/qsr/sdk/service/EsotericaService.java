@@ -180,17 +180,19 @@ public class EsotericaService extends Service {
             "ORDER BY e.stick DESC, e.createtime DESC";
     private static final String ESOTERICA_SPORTTERY_INFO = "SELECT IFNULL(u.head_img_url, e.icon) head_img_url, " +
             "IFNULL(e.entry_name, u.nickname) nickname, " +
-            "IFNULL(e.description, '') _desc " +
+            "IFNULL(e.description, '') _desc, u.id _id, IF(ua.att_id IS NULL, 0, 1) is_attention " +
             "  FROM qsr_clientui_entry e " +
             "  INNER JOIN qsr_users u ON e.user_id = u.id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = u.id AND ua.status_id = 1 AND ua.type_id = 3 AND ua.user_id = ? " +
             "  WHERE e.user_id = ?";
-    private static final String SELECT_ESOTERICA_LIST = "SELECT pe.order_number, e.esoterica_title, e.esoterica_price, pe.createtime, s.status_name esotericaStatus, es.status_name payStatus ";
+    private static final String SELECT_ESOTERICA_LIST = "SELECT pe.order_number, e.esoterica_no, e.esoterica_title, e.esoterica_price, pe.createtime, s.status_name esotericaStatus, es.status_name payStatus, es.status_id ";
     private static final String ESOTERICA_FROM_PAY_USER = "FROM qsr_pay_esoterica pe " +
             "INNER JOIN qsr_pay_esoterica_status es ON pe.status_id = es.status_id " +
             "INNER JOIN qsr_team_season_esoterica e ON pe.esoterica_no = e.esoterica_no " +
             "INNER JOIN qsr_team_season_esoterica_status s ON s.status_id = e.status_id " +
             "WHERE pe.user_id = ? AND pe.enabled = 1 ORDER BY pe.createtime DESC ";
     private static final String ESOTERICA_FROM_PAY_USER_TYPE = "FROM qsr_pay_esoterica pe " +
+            "INNER JOIN qsr_pay_esoterica_status es ON pe.status_id = es.status_id " +
             "INNER JOIN qsr_team_season_esoterica e ON pe.esoterica_no = e.esoterica_no " +
             "INNER JOIN qsr_team_season_esoterica_status s ON s.status_id = e.status_id " +
             "WHERE pe.user_id = ? AND pe.status_id = ? AND pe.enabled = 1 ORDER BY pe.createtime DESC ";
@@ -413,9 +415,9 @@ public class EsotericaService extends Service {
         }
     }
 
-    public Map<String,Object> getEsotericaSportteryInfo(int id) throws ServiceException {
+    public Map<String,Object> getEsotericaSportteryInfo(int id, int userId) throws ServiceException {
         try {
-            return record2map(Db.findFirst(ESOTERICA_SPORTTERY_INFO, id));
+            return record2map(Db.findFirst(ESOTERICA_SPORTTERY_INFO, userId, id));
         } catch (Throwable t) {
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载专家信息失败", t);
         }

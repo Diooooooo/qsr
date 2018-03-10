@@ -299,8 +299,14 @@ public class EsotericaController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             int _id = f.i("_id");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
             EsotericaService esotericaService = this.getService(EsotericaService.class);
-            Map<String, Object> info = esotericaService.getEsotericaSportteryInfo(_id);
+            Map<String, Object> info = esotericaService.getEsotericaSportteryInfo(_id, userId);
             this.renderData(info, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSportteryInfo", t);

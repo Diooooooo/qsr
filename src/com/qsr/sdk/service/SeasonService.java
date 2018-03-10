@@ -123,7 +123,7 @@ public class SeasonService extends Service {
             "  LEFT JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
             "WHERE ts.season_team_a = ? AND ts.season_team_b = ? " +
-            "AND YEAR(ts.season_year) = YEAR(NOW()) " +
+//            "AND YEAR(ts.season_year) = YEAR(NOW()) " +
             "ORDER BY ts.season_year DESC, ts.season_gameweek DESC LIMIT ?";
     private final static String TEAM_SEASON_HISTORY = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
