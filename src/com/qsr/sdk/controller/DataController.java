@@ -4,9 +4,7 @@ import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.service.DataService;
 import com.qsr.sdk.service.LeagueService;
 import com.qsr.sdk.service.SeasonService;
-import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.util.StringUtil;
-import org.kie.api.task.model.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,23 +46,15 @@ public class DataController extends WebApiController {
         }
     }
 
-    public void getDataInfo() {
+    public void getRankingType() {
         try {
             Fetcher f = this.fetch();
-            DataService dataService = this.getService(DataService.class);
-            Map<String, Object> info = dataService.getDataInfo();
-            this.renderData(info, SUCCESS);
-        } catch (Throwable t) {
-            this.renderException("getDataInfo", t);
-        }
-    }
-
-    public void getRankingGroup() {
-        try {
-            Fetcher f = this.fetch();
+            int league_id = f.i("league_id");
+            int year = f.i("year", 0);
+            year = 0 == year ? LocalDate.now().getYear() : year;
             logger.debug("getRankingGroup params={}", f);
             DataService dataService = this.getService(DataService.class);
-            List<Map<String, Object>> datas = dataService.getDataGroup();
+            List<Map<String, Object>> datas = dataService.getRankingType(league_id, year);
             this.renderData(datas, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getRankingGroup", t);

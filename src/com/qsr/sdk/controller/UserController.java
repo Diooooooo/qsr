@@ -38,10 +38,12 @@ public class UserController extends WebApiController {
 	        if (!password.equals(confirm)) {
 	        	throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "两次密码不一样");
 			}
-
+            UserService userService = this.getService(UserService.class);
+	        if (userService.check(mobile)) {
+	            throw new ApiException(ErrorCode.USER_ALREADY_EXIST, "已注册的手机号");
+            }
 			MessageService messageService = this.getService(MessageService.class);
-			messageService.registerUser(Md5Util.digest(mobile), Md5Util.digest(mobile), StringUtil.NULL_STRING, nickName);
-	        UserService userService = this.getService(UserService.class);
+			messageService.registerUser(Md5Util.digest(mobile + System.currentTimeMillis()), Md5Util.digest(mobile), StringUtil.NULL_STRING, nickName);
 	        userService.register(mobile, nickName, password, confirm, userType, ip);
 	        this.renderData(SUCCESS);
         } catch (Throwable e) {

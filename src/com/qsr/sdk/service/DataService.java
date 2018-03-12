@@ -25,17 +25,20 @@ public class DataService extends Service {
             "  WHERE li.league_id = ? " +
             "  GROUP BY li.league_year ORDER BY li.league_year DESC";
     private final static String SEASON_LIST_ITEM = "SELECT t.team_id, t.team_name, t.team_icon, i.item_count, " +
-            "  i.item_vicotry, i.item_deuce, i.item_lose, i.item_in, i.item_out, i.item_source " +
+            "  i.item_vicotry, i.item_deuce, i.item_lose, i.item_in/i.item_out in_out, i.item_source " +
             "FROM qsr_team_season_ranking_list_item i " +
             "  INNER JOIN qsr_team t ON i.team_id = t.team_id " +
             "  INNER JOIN qsr_team_season_ranking_list_type lt ON i.type_id = lt.type_id " +
             "  INNER JOIN qsr_team_season_ranking_list_group g ON g.group_id = lt.group_id " +
             "WHERE i.league_id = ? AND g.group_id = ? AND YEAR(i.league_year) = YEAR(STR_TO_DATE(?, '%Y')) " +
             "ORDER BY i.item_source DESC;";
+    private final static String RANKING_TYPE = "SELECT t.type_name, t.type_id " +
+            "FROM qsr_team_season_ranking_list_type t " +
+            "  INNER JOIN qsr_team_season_ranking_list_item i ON t.type_id = i.type_id " +
+            "WHERE i.league_id = ? AND YEAR(i.league_year) = YEAR(?) GROUP BY i.type_id";
 
     private final static int RANKING_GROUP_SOURCE = 1;
     private static final String IS_SCORE = "SELECT l.is_score isScore FROM qsr_league l WHERE l.lea_id = ? ";
-
 
     public List<Map<String, Object>> getDataList() throws ServiceException {
         try {
@@ -43,24 +46,6 @@ public class DataService extends Service {
         } catch (Throwable t) {
             logger.error("getDataList was error. exception = {}", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载数据失败", t);
-        }
-    }
-
-    public Map<String, Object> getDataInfo() throws ServiceException {
-        try {
-            return record2map(Db.findFirst(""));
-        } catch (Throwable t) {
-            logger.error("getDataInfo was error. exception = {}", t);
-            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载数据失败", t);
-        }
-    }
-
-    public List<Map<String,Object>> getDataGroup() throws ServiceException {
-        try {
-            return record2list(Db.find(DATA_GROUP));
-        } catch (Throwable t) {
-            logger.error("getRankingGroup was error, exception={}", t);
-            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载分组失败", t);
         }
     }
 
@@ -88,6 +73,15 @@ public class DataService extends Service {
         } catch (Throwable t) {
             logger.error("isScore was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载数据失败", t);
+        }
+    }
+
+    public List<Map<String, Object>> getRankingType(int league_id, int year) throws ServiceException {
+        try {
+            return record2list(Db.find(RANKING_TYPE, league_id, year));
+        } catch (Throwable t) {
+            logger.error("getRankingType was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载排行类型失败", t);
         }
     }
 }

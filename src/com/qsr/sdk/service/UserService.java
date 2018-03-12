@@ -19,6 +19,7 @@ public class UserService extends Service {
 
     final static Logger logger = LoggerFactory.getLogger(UserService.class);
     private static final String SELECT_USERS = "SELECT u.sessionkey s, u.nickname n, u.head_img_url a FROM qsr_users u WHERE u.type_id = 1";
+    private static final String CHECK = "SELECT u.sessionkey FROM qsr_users u WHERE u.mobile = ? ";
 
     @CacheAdd(capacity = 2000, timeout = 1, timeUnit = TimeUnit.DAYS)
     protected Integer queryUserIdBySessionKey(String sessionKey) {
@@ -134,6 +135,14 @@ public class UserService extends Service {
         } catch (Throwable t) {
             logger.error("getUserList was error. exception = {}", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载用户失败", t);
+        }
+    }
+
+    public boolean check(String mobile) throws ServiceException {
+        try {
+            return null != Db.findFirst(CHECK, mobile);
+        } catch (Throwable t) {
+            throw new ServiceException(getServiceName(), ErrorCode.DATA_SAVA_FAILED, "已存在的用户", t);
         }
     }
 }

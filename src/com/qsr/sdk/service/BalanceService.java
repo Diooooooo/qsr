@@ -12,9 +12,10 @@ import java.util.Map;
 
 public class BalanceService extends Service {
     private static final Logger logger = LoggerFactory.getLogger(BalanceService.class);
-    private static final String SELECT_BALANCE = "SELECT b.balance total, t.name currency_name FROM qsr_user_balance b " +
-            "INNER JOIN qsr_user_currency_type t ON b.currency_type_id = t.currency_type_id " +
-            " WHERE b.user_id = ? ";
+    private static final String SELECT_BALANCE = "SELECT IFNULL(b.balance, 0) total, t.name currency_name " +
+            "FROM qsr_user_currency_type t " +
+            "LEFT JOIN qsr_user_balance b ON b.currency_type_id = t.currency_type_id AND b.user_id = ? " +
+            "WHERE t.enabled = 1 ";
     private static final String PAY_ESOTERICA = "INSERT into qsr_pay_esoterica(user_id, order_number, esoterica_no, status_id) " +
             "  SELECT i.user_id, MD5(NOW()), e.esoterica_no, 2 FROM (SELECT ? AS user_id, ? AS esoterica_id) i " +
             "  INNER JOIN qsr_team_season_esoterica e ON i.esoterica_id = e.esoterica_no " +

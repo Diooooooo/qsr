@@ -15,33 +15,25 @@
 		</encoder>
 	</appender>
 
-	<logger name="com.qsr.sdk.controller.PaymentController"
+	<logger name="com.qsr.sdk.controller.PayOrderController"
 		additivity="false">
 		<level value="debug" />
 		<appender-ref ref="PAYMENT" />
 		<appender-ref ref="ERROR" />
 	</logger>
 
-	<logger name="com.qsr.sdk.controller.PaymentCallbackController"
+	<logger name="com.qsr.sdk.controller.PayOrderNotifyController"
 		additivity="false">
 		<level value="debug" />
 		<appender-ref ref="PAYMENT" />
 		<appender-ref ref="ERROR" />
 	</logger>
 
-	<logger name="com.qsr.sdk.controller.service.PaymentService"
+	<logger name="com.qsr.sdk.component.payment.provider.weixin.WeixinPayment"
 		additivity="false">
 		<level value="debug" />
 		<appender-ref ref="PAYMENT" />
 		<appender-ref ref="ERROR" />
 	</logger>
-	
-	<logger name="com.qsr.sdk.controller.serviceprovider.payment"
-		additivity="false">
-		<level value="debug" />
-		<appender-ref ref="PAYMENT" />
-		<appender-ref ref="ERROR" />
-	</logger>
-
 
 </included>
