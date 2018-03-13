@@ -1,8 +1,11 @@
 package com.qsr.sdk.controller;
 
 import com.qsr.sdk.controller.fetcher.Fetcher;
+import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.service.SmsService;
+import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.util.Constants;
+import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.LoggerFactory;
 
 public class SmsController extends WebApiController {
@@ -32,6 +35,10 @@ public class SmsController extends WebApiController {
 		    Fetcher f = this.fetch();
 			logger.debug("getRegisterVerifyCode,params={}", f.getParameterMap());
 			String phoneNumber = f.s("phone_number");
+            UserService userService = this.getService(UserService.class);
+            if (userService.check(phoneNumber)) {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "已注册的手机号");
+            }
 			this.getService(SmsService.class).getVerifyCode(Constants.SMS_TYPE_REGISTER, phoneNumber);
 			this.renderData(SUCCESS);
 		} catch (Throwable e) {

@@ -186,6 +186,15 @@ public class SeasonService extends Service {
             "  WHERE s.lea_id = ? AND YEAR(s.season_year) = ? " +
             "ORDER BY s.season_start_play_time DESC";
     private static final String SELECT_SEASON_LIST_BY_GAMEWEEK = "";
+    private static final String TEAM_SEASON_HISTORY_THREE = "FROM qsr_team_season ts " +
+            "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
+            "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
+            "  LEFT JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
+            "  LEFT JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
+            "WHERE ts.status_id = 1 AND ts.season_team_a = ? OR ts.season_team_b = ? " +
+            "AND ts.season_start_play_time > NOW() " +
+            "ORDER BY ts.season_start_play_time ASC, ts.season_gameweek ASC LIMIT ?";
 
     /**
      * 根据联赛Id获取赛程
@@ -407,6 +416,15 @@ public class SeasonService extends Service {
             return record2list(Db.find(SELECT_SEASON_LIST_BY_GAMEWEEK, leagueId, gameweek));
         } catch (Throwable t) {
             logger.error("getSeasonListByGameweek was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛程失败", t);
+        }
+    }
+
+    public List<Map<String,Object>> getSeasonListByTeamIdWithThree(int teamAId, int userId, int limit) throws ServiceException {
+        try {
+            return record2list(Db.find(SELECT_SEASON_HISTOR, TEAM_SEASON_HISTORY_THREE, userId, teamAId, teamAId, limit));
+        } catch (Throwable t) {
+            logger.error("getSeasonListByTeamIdWithThree was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛程失败", t);
         }
     }

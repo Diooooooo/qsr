@@ -1,6 +1,5 @@
 package com.qsr.sdk.controller;
 
-import cn.jpush.api.report.UsersResult;
 import com.qsr.sdk.component.payment.PaymentOrder;
 import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.exception.ApiException;
@@ -34,6 +33,7 @@ public class PayOrderController extends WebApiController {
             logger.debug("payOrderRequest params = {}", f);
             String sessionkey = f.s("sessionkey");
             String typeId = f.s("type_id");
+            String platform = f.s("platform", "Android");
 //            int fee = f.i("fee", 0);
             String provider = f.s("provider", PAY_PROVIDER[0]);
 
@@ -63,6 +63,7 @@ public class PayOrderController extends WebApiController {
             }
             params.put("provider", provider);
             params.put("sign_type", "MD5");
+            params.put("platform", platform);
             PaymentOrder paymentOrder = payOrderService.payOrderRequst(userId, levelInfo.i("level_count"), provider,
                     getRealRemoteAddr(), params);
             Map<String, String> info = paymentOrder.getConf();
@@ -132,14 +133,17 @@ public class PayOrderController extends WebApiController {
             String orderNumber = f.s("order_number");
             String sessionkey = f.s("sessionkey");
             String provider = f.s("provider", PAY_PROVIDER[0]);
+            String platform = f.s("platform", StringUtil.NULL_STRING);
             if (!Arrays.asList(PAY_PROVIDER).contains(provider)) {
                 throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "支付方式不正确");
             }
             UserService userService = this.getService(UserService.class);
             int userId = userService.getUserIdBySessionKey(sessionkey);
             PayOrderService payOrderService = this.getService(PayOrderService.class);
+            Map<String, Object> m = new HashMap<>();
+            m.put("platform", platform);
             PaymentOrder paymentOrder = payOrderService.rePayOrderRequest(userId, orderNumber, provider,
-                    getRealRemoteAddr(), new HashMap<>());
+                    getRealRemoteAddr(), m);
             this.renderData(paymentOrder.getConf(), SUCCESS);
         } catch (Throwable t) {
             this.renderException("rePay", t);

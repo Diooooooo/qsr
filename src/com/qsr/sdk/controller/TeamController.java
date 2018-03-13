@@ -139,6 +139,29 @@ public class TeamController extends WebApiController {
         }
     }
 
+    public void getFutureTeamSeasonListByTeamId() {
+        try {
+            Fetcher f = this.fetch();
+            int seasonId = f.i("season_id");
+            String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
+            int userId = 0;
+            if (null != sessionkey) {
+                UserService userService = this.getService(UserService.class);
+                userId = userService.getUserIdBySessionKey(sessionkey);
+            }
+            SeasonService seasonService = this.getService(SeasonService.class);
+            Parameter p = new Parameter(seasonService.getSeasonInfo(seasonId, userId));
+            List<Map<String, Object>> a = seasonService.getSeasonListByTeamIdWithThree(p.i("teamAId"), userId, 3);
+            List<Map<String, Object>> b = seasonService.getSeasonListByTeamIdWithThree(p.i("teamBId"), userId, 3);
+            Map<String, Object> info = new HashMap<>();
+            info.put("a", a);
+            info.put("b", b);
+            this.renderData(info);
+        } catch (Throwable t) {
+            this.renderException("getFutureTeamSeasonListByTeamId", t);
+        }
+    }
+
     public void getSeasonListByVsTeamIdWithLength() {
         try {
             Fetcher f = this.fetch();

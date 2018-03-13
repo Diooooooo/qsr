@@ -3,7 +3,6 @@ package com.qsr.sdk.service;
 import com.jfinal.plugin.activerecord.Db;
 import com.qsr.sdk.component.payment.Payment;
 import com.qsr.sdk.component.payment.PaymentOrder;
-import com.qsr.sdk.controller.PayOrderController;
 import com.qsr.sdk.exception.PaymentException;
 import com.qsr.sdk.jfinal.DbUtil;
 import com.qsr.sdk.lang.PageList;
@@ -29,15 +28,16 @@ public class PayOrderService extends Service {
     private static final String NOTIFY_URL = "http://liangqiujiang.com:8080/api/notify/payNotify";
     private static final String PAY_ORDER_INSTANCE = "INSERT INTO qsr_payorder_request(order_number,request_date,user_id," +
             "request_provider_id,payee_account,level_id,fee,currency_amount,currency_type_id " +
-            " ,status_id,client_ip,sign_type,original_body,original_detail,original_data, prepay_id) " +
+            " ,status_id,client_ip,sign_type,original_body,original_detail,original_data, prepay_id, app_type_id) " +
             "SELECT i.orderNumber, NOW(), i.user_id, p.provider_id, null, l.level_id, IF(0 = l.level_count, i.fee, l.level_count), IF(0 = l.level_count, i.currency_amount, l.level_count), " +
-            "  t.currency_type_id, 2, i.clientIp, i.sign_type, i.original_body, i.original_detail, i.original_data, i.prepay_id " +
+            "  t.currency_type_id, 2, i.clientIp, i.sign_type, i.original_body, i.original_detail, i.original_data, i.prepay_id, IF(null = at.type_id, -1, at.type_id) " +
             "  FROM (SELECT ? AS orderNumber, ? AS level_en, ? AS provider_en, ? AS currency_type_id, ? AS user_id, " +
             "? AS fee, ? AS currency_amount, ? AS clientIp, ? AS sign_type, ? AS original_body, " +
-            "? AS original_detail, ? AS original_data, ? as prepay_id) i " +
+            "? AS original_detail, ? AS original_data, ? as prepay_id, ? AS platform) i " +
             "INNER JOIN qsr_payorder_request_level l ON l.level_en = i.level_en " +
             "INNER JOIN qsr_payorder_provider p ON p.provider_en = i.provider_en " +
             "INNER JOIN qsr_user_currency_type t ON t.currency_type_id = i.currency_type_id " +
+            "LEFT JOIN qsr_app_type at ON at.type_name = i.platform " +
             "ON DUPLICATE UPDATE KEY request_date = NOW(), request_provider_id = i.provider, level_id = l.level_id, " +
             "fee = IF(0 = l.level_count, i.fee, l.level_count), " +
             "currency_amount = IF(0 = l.level_count, i.currency_amount, l.level_count)," +
@@ -141,7 +141,7 @@ public class PayOrderService extends Service {
                             null == req.get("currency_type_id") ? 1 : req.get("currency_type_id"), userId,
                             req.get("fee"), req.get("currency_amount"), clientIP, req.get("sign_type"),
                             req.toString(), req.toString(), Md5Util.concat(order[0].getConf(), NULL_STRING),
-                            order[0].getConf().get("prepay_id")) > 0);
+                            order[0].getConf().get("prepay_id"), req.get("platform")) > 0);
                 } catch (PaymentException e) {
                     logger.error("payOrderRequest was error. exception = {} ", e);
                     return false;
@@ -179,7 +179,7 @@ public class PayOrderService extends Service {
                     return null != order[0] && Db.update(PAY_ORDER_INSTANCE, orderNumber, orderInfo.get("user_id"),
                             orderInfo.get("fee"), orderInfo.get("currency_amount"), clientIP,
                             orderInfo.get("sign_type"), orderInfo.toString(), orderInfo.toString(),
-                            Md5Util.concat(order[0].getConf(), NULL_STRING), order[0].getConf().get("prepay_id")) > 0;
+                            Md5Util.concat(order[0].getConf(), NULL_STRING), order[0].getConf().get("prepay_id"), req.get("platform")) > 0;
                 } catch (Throwable t) {
                     logger.error("rePayOrderRequest was error. exception = {}", t);
                     return false;

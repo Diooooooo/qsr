@@ -28,7 +28,7 @@ public class EsotericaService extends Service {
             "  e.esoterica_date create_time, '' AS detail, e.esoterica_price price, " +
             "  t.team_name team_a, b.team_name team_b, s.season_start_play_time - INTERVAL 30 MINUTE play_time, " +
             "  s.season_fs_a fs_a, s.season_fs_b fs_b";
-    private static final String ESOTERICA_SELECT_LIST_V2 = "SELECT IFNULL(u.head_img_url, cu.icon) head_img_url, u.nickname, " +
+    private static final String ESOTERICA_SELECT_LIST_V2 = "SELECT IFNULL(cu.icon, u.head_img_url) head_img_url, IF(cu.entry_name, u.nickname) nickname, " +
             "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, " +
             "  DATE_FORMAT(e.esoterica_date, '%m-%d %H:%i') t, IFNULL(cu.description, '') _desc, " +
             "  e.esoterica_price price, e.esoterica_no esoterica_id, e.status_id, e.esoterica_author, et.type_name, et.type_id, " +
@@ -125,11 +125,12 @@ public class EsotericaService extends Service {
             "ORDER BY e.stick DESC, e.createtime DESC";
     private static final String ESOTERICA_ITEM = "SELECT l.lea_name n, a.team_name a, b.team_name b, " +
             "  DATE_FORMAT(s.season_start_play_time, '%m-%d %H:%i') pt FROM qsr_team_season_esoterica_item i " +
+            "  INNER JOIN qsr_team_season_esoterica e on e.esoterica_id = i.esoterica_id " +
             "  INNER JOIN qsr_team_season s ON i.season_id = s.season_id " +
             "  INNER JOIN qsr_team a ON s.season_team_a = a.team_id " +
             "  INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +
             "  INNER JOIN qsr_league l ON s.lea_id = l.lea_id " +
-            "WHERE i.esoterica_id = ? ORDER BY s.season_start_play_time ASC LIMIT ? ";
+            "WHERE e.esoterica_no = ? ORDER BY s.season_start_play_time ASC LIMIT ? ";
     private static final int LIMIT = 10;
     private static final String ESOTERICA_STAR_CONTINUE = "SELECT " +
             "COUNT(CASE WHEN e.status_id = 2 THEN e.status_id END) star, " +
