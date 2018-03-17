@@ -21,7 +21,7 @@ public class AttentionService extends Service {
             "  LEFT JOIN qsr_team t ON a.target_id = t.team_id " +
             "  LEFT JOIN qsr_team_season s ON s.season_id = a.target_id " +
             "  LEFT JOIN qsr_team_sportsman ts ON a.target_id = ts.sports_id " +
-            "  LEFT JOIN qsr_league l ON s.lea_id = l.lea_id " +
+            "  LEFT JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1 " +
             "  LEFT JOIN qsr_team ta ON s.season_team_a = ta.team_id " +
             "  LEFT JOIN qsr_team tb ON s.season_team_b = tb.team_id " +
             "  WHERE a.user_id = ? AND a.status_id = 1 " +

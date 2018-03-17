@@ -22,14 +22,8 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_clientui_entry cu ON e.esoterica_author = cu.user_id " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = e.esoterica_id AND ua.status_id = 1 AND ua.type_id = 1 AND ua.user_id = ? " +
             "  WHERE e.esoterica_no = ? AND e.enabled = 1 ";
-    private static final String ESOTERICA_SELECT_LIST = "SELECT IFNULL(u.head_img_url, '') head_img_url, " +
-            "  u.nickname, 0 AS rate_return, " +
-            "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, " +
-            "  e.esoterica_date create_time, '' AS detail, e.esoterica_price price, " +
-            "  t.team_name team_a, b.team_name team_b, s.season_start_play_time - INTERVAL 30 MINUTE play_time, " +
-            "  s.season_fs_a fs_a, s.season_fs_b fs_b";
-    private static final String ESOTERICA_SELECT_LIST_V2 = "SELECT IFNULL(cu.icon, u.head_img_url) head_img_url, IF(cu.entry_name, u.nickname) nickname, " +
-            "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, " +
+    private static final String ESOTERICA_SELECT_LIST_V2 = "SELECT IFNULL(cu.icon, u.head_img_url) head_img_url, IFNULL(cu.entry_name, u.nickname) nickname, " +
+            "  IFNULL(e.esoterica_title, '') title, IFNULL(e.esoterica_intro, '') intro, cu.entry_id author, " +
             "  DATE_FORMAT(e.esoterica_date, '%m-%d %H:%i') t, IFNULL(cu.description, '') _desc, " +
             "  e.esoterica_price price, e.esoterica_no esoterica_id, e.status_id, e.esoterica_author, et.type_name, et.type_id, " +
             "  ts.status_id ts_id, ts.status_name, IF(ua.att_id != null, 1, 0) is_attention ";
@@ -69,8 +63,8 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_team_season s ON s.season_id = e.sea_id " +
             "  INNER JOIN qsr_team t ON t.team_id = s.season_team_a " +
             "  INNER JOIN qsr_team b ON b.team_id = s.season_team_b " +
-            "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id " +
-            "  INNER JOIN qsr_league_country c ON l.country_id = c.country_id " +
+            "  INNER JOIN qsr_league l ON l.lea_id = s.lea_id AND l.enabled = 1 " +
+            "  INNER JOIN qsr_league_country c ON l.country_id = c.country_id AND l.enabled = 1 " +
             "  INNER JOIN qsr_clientui_entry cu ON e.esoterica_author = cu.user_id " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = e.esoterica_id AND ua.status_id = 1 AND ua.type_id = 1 AND ua.user_id = ? " +
             "  WHERE c.country_id = ? " +
@@ -129,7 +123,7 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_team_season s ON i.season_id = s.season_id " +
             "  INNER JOIN qsr_team a ON s.season_team_a = a.team_id " +
             "  INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +
-            "  INNER JOIN qsr_league l ON s.lea_id = l.lea_id " +
+            "  INNER JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1 " +
             "WHERE e.esoterica_no = ? ORDER BY s.season_start_play_time ASC LIMIT ? ";
     private static final int LIMIT = 10;
     private static final String ESOTERICA_STAR_CONTINUE = "SELECT " +
@@ -145,7 +139,7 @@ public class EsotericaService extends Service {
             "  ts.season_start_play_time start_time, a.team_name a_name, b.team_name b_name " +
             "  FROM qsr_team_season_sporttery s " +
             "  INNER JOIN qsr_team_season ts ON s.season_id = ts.season_id " +
-            "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id " +
+            "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id AND l.enabled = 1 " +
             "  INNER JOIN qsr_team a ON ts.season_team_a = a.team_id " +
             "  INNER JOIN qsr_team b ON ts.season_team_b = b.team_id " +
             "WHERE s.sporttery_issue = ? ";
@@ -220,7 +214,16 @@ public class EsotericaService extends Service {
             "AND pe.enabled = 1 AND pe.status_id = 1 " +
             "INNER JOIN qsr_team_season_esoterica se ON se.esoterica_no = pe.esoterica_no " +
             "SET b.balance = b.balance - se.esoterica_price ";
-
+    private static final String ESOTERICA_FREE = "FROM qsr_team_season_esoterica e " +
+            "  INNER JOIN qsr_team_season_esoterica_status ts ON e.status_id = ts.status_id " +
+            "  INNER JOIN qsr_team_season_esoterica_type et ON e.type_id = et.type_id " +
+            "  INNER JOIN qsr_users u ON e.esoterica_author = u.id " +
+            "  INNER JOIN qsr_clientui_entry cu ON e.esoterica_author = cu.user_id " +
+            "  LEFT JOIN qsr_users_attention ua ON ua.target_id = e.esoterica_id AND ua.status_id = 1 AND ua.type_id = 1 AND ua.user_id = ? " +
+            "WHERE e.enabled = 1 AND e.status_id = 1 AND e.is_open = 1 AND e.esoterica_price = 0 " +
+            "ORDER BY e.stick DESC, e.createtime DESC";
+    private static final String EOSTERICA_INFO = "SELECT e.esoterica_no, e.esoterica_title title, e.esoterica_price*100 price, e.currency_type_id type_id " +
+            "FROM qsr_team_season_esoterica e WHERE e.esoterica_no = ? AND e.enabled = 1 AND e.status_id = 1";
     public PageList<Map<String, Object>> getEsotericaListByLeagueId(int pageNumber, int pageSize, int leagueId, int userId)
             throws ServiceException {
         try {
@@ -245,6 +248,15 @@ public class EsotericaService extends Service {
         } catch (Throwable t) {
             logger.error("getEsotericaInfo was error. esotericaId = {}, exception = {}", esotericaId, t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载锦囊失败", t);
+        }
+    }
+
+    public Map<String, Object> getEsotericaInfo(String esotericaNo) throws ServiceException {
+        try {
+            return record2map(Db.findFirst(EOSTERICA_INFO, esotericaNo));
+        } catch (Throwable t) {
+            logger.error("getEsotericaInfo was error. esotericaId = {}, exception = {}", esotericaNo, t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载详情失败", t);
         }
     }
 
@@ -297,9 +309,9 @@ public class EsotericaService extends Service {
         }
     }
 
-    public PageList<Map<String,Object>> getEsotericaHistoryWithAuthorityPrev(int pageNumber, int pageSize, int userId) throws ServiceException {
+    public PageList<Map<String,Object>> getEsotericaHistoryWithAuthorityPrev(int pageNumber, int pageSize, int userId, int author) throws ServiceException {
         try {
-            Page<Record> pr = DbUtil.paginate(pageNumber, pageSize, ESOTERICA_SELECT_LIST_V2, ESOTERICA_HISTORY, userId, userId);
+            Page<Record> pr = DbUtil.paginate(pageNumber, pageSize, ESOTERICA_SELECT_LIST_V2, ESOTERICA_HISTORY, userId, author);
             getStatistics(pr);
             return page2PageList(pr);
         } catch (Throwable t) {
@@ -389,7 +401,7 @@ public class EsotericaService extends Service {
         r.set("star", scr.get("star"));
         r.set("_continue", scr.get("_continue"));
         r.set("rate", rate);
-        r.set("limit", LIMIT);
+        r.set("limit", lr.size());
     }
 
     public List<Map<String,Object>> getEsotericaListWithIssue(String issue, int userId) throws ServiceException {
@@ -468,6 +480,15 @@ public class EsotericaService extends Service {
         } catch (Throwable t) {
             logger.error("cancelEsoterica was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "取消锦囊订单失败", t);
+        }
+    }
+
+    public PageList<Map<String, Object>> getFreeEsotericaList(int pageNumber, int pageSize, int userId) throws ServiceException {
+        try {
+            return page2PageList(DbUtil.paginate(pageNumber, pageSize, ESOTERICA_SELECT_LIST_V2, ESOTERICA_FREE, userId));
+        } catch (Throwable t) {
+            logger.error("getFreeEsotericaList was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载免费锦囊失败", t);
         }
     }
 }

@@ -97,4 +97,18 @@ public class InternalController extends WebApiController {
         }
     }
 
+    public void batchRefund() {
+        try {
+            Fetcher f = this.fetch();
+            String pwd = f.s("manager");
+            if (Env.getManagementPassword().equals(pwd)) {
+
+            } else {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "无权访问此接口，请联系管理员");
+            }
+        } catch (Throwable t) {
+            this.renderException("batchRefund", t);
+        }
+    }
+
 }

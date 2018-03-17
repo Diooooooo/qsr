@@ -13,6 +13,7 @@ import com.qsr.sdk.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -29,14 +30,14 @@ public class PayOrderService extends Service {
     private static final String PAY_ORDER_INSTANCE = "INSERT INTO qsr_payorder_request(order_number,request_date,user_id," +
             "request_provider_id,payee_account,level_id,fee,currency_amount,currency_type_id " +
             " ,status_id,client_ip,sign_type,original_body,original_detail,original_data, prepay_id, app_type_id) " +
-            "SELECT i.orderNumber, NOW(), i.user_id, p.provider_id, null, l.level_id, IF(0 = l.level_count, i.fee, l.level_count), IF(0 = l.level_count, i.currency_amount, l.level_count), " +
+            "SELECT i.orderNumber, NOW(), i.user_id, p.provider_id, null, IFNULL(l.level_id, i.esotericaNo), IFNULL(l.level_count, i.fee), IFNULL(l.level_count, i.currency_amount), " +
             "  t.currency_type_id, 2, i.clientIp, i.sign_type, i.original_body, i.original_detail, i.original_data, i.prepay_id, IF(null = at.type_id, -1, at.type_id) " +
             "  FROM (SELECT ? AS orderNumber, ? AS level_en, ? AS provider_en, ? AS currency_type_id, ? AS user_id, " +
             "? AS fee, ? AS currency_amount, ? AS clientIp, ? AS sign_type, ? AS original_body, " +
-            "? AS original_detail, ? AS original_data, ? as prepay_id, ? AS platform) i " +
-            "INNER JOIN qsr_payorder_request_level l ON l.level_en = i.level_en " +
+            "? AS original_detail, ? AS original_data, ? as prepay_id, ? AS platform, ? AS esotericaNo) i " +
             "INNER JOIN qsr_payorder_provider p ON p.provider_en = i.provider_en " +
             "INNER JOIN qsr_user_currency_type t ON t.currency_type_id = i.currency_type_id " +
+            "LEFT JOIN qsr_payorder_request_level l ON l.level_en = i.level_en " +
             "LEFT JOIN qsr_app_type at ON at.type_name = i.platform " +
             "ON DUPLICATE UPDATE KEY request_date = NOW(), request_provider_id = i.provider, level_id = l.level_id, " +
             "fee = IF(0 = l.level_count, i.fee, l.level_count), " +
@@ -106,6 +107,12 @@ public class PayOrderService extends Service {
             "AND r.currency_used = 0 AND r.status_id = 2";
     private static final String DEL_PAY_ORDER = "UPDATE qsr_payorder_request r " +
             "SET r.enabled = 0 WHERE r.user_id = ? AND r.order_number = ?";
+    private static final String ESOTERICA_ORDER = "INSERT INTO qsr_pay_esoterica(order_number,user_id,esoterica_no) VALUES ( ?, ?, ?)";
+    private static final String PAY_ORDER_INFO = "SELECT r.user_id, r.request_provider_id, r.order_number, r.fee FROM qsr_payorder_request r " +
+            "INNER JOIN qsr_payorder_result pr ON r.order_number = pr.order_number " +
+            "INNER JOIN qsr_team_season_esoterica e ON r.level_id = e.esoterica_no " +
+            "WHERE r.enabled = 1 and r.status_id = 1  and e.status_id != 2 and e.enabled = 1 " +
+            "AND r.user_id = ? AND r.order_number = ? ";
 
     public List<Map<String,Object>> getPayOrderLevel() throws ServiceException {
         try {
@@ -126,11 +133,7 @@ public class PayOrderService extends Service {
 
     public PaymentOrder payOrderRequst(int userId, int fee, String provider, String clientIP, Map<String, Object> req) throws ServiceException {
         try {
-            Map<String, Object> providerInfo = record2map(Db.findFirst(SELECT_PROVIDER_WITH_PROVIDER_EN, provider));
-            if (null == providerInfo) {
-                throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "不存在的支付服务");
-            }
-            Parameter p = new Parameter(providerInfo);
+            Parameter p = getParameter(provider);
             Payment payment = PaymentHelper.getPayment(p.i("provider_config_id"));
             final PaymentOrder[] order = {null};
             boolean provider_config_id = Db.tx(() -> {
@@ -141,7 +144,7 @@ public class PayOrderService extends Service {
                             null == req.get("currency_type_id") ? 1 : req.get("currency_type_id"), userId,
                             req.get("fee"), req.get("currency_amount"), clientIP, req.get("sign_type"),
                             req.toString(), req.toString(), Md5Util.concat(order[0].getConf(), NULL_STRING),
-                            order[0].getConf().get("prepay_id"), req.get("platform")) > 0);
+                            order[0].getConf().get("prepay_id"), req.get("platform"), StringUtil.EMPTY_STRING) > 0);
                 } catch (PaymentException e) {
                     logger.error("payOrderRequest was error. exception = {} ", e);
                     return false;
@@ -261,7 +264,7 @@ public class PayOrderService extends Service {
                     int[] logIds = {0};
                     return Db.update(MODITY_PAYORDER, statusId, openid, outTradeNo, provider, resultCode) > 0
                             && DbUtil.update(BALANCE_EDCATION, logIds, outTradeNo) > 0
-                            && Db.update(BALANCE_EDCATION_LOG, outTradeNo, 1, "购买匠币", logIds[0]) > 0 ;
+                            && Db.update(BALANCE_EDCATION_LOG, outTradeNo, 1, "购买锦囊", logIds[0]) > 0 ;
                 } catch (Throwable t) {
                     logger.error("modify notify was error. exception = {} ", t);
                     return false;
@@ -298,5 +301,79 @@ public class PayOrderService extends Service {
             logger.error("delPayOrder was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "删除订单失败", t);
         }
+    }
+
+    public PaymentOrder payRequestV2(int userId, int level_count, String provider, String realRemoteAddr, Map<String, Object> params) throws ServiceException {
+        try {
+            Parameter p = getParameter(provider);
+            Payment payment = PaymentHelper.getPayment(p.i("provider_config_id"));
+            final PaymentOrder[] order = {null};
+            boolean provider_config_id = Db.tx(() -> {
+                try {
+                    order[0] = payment.request(p.s("provider_config_id"), level_count, realRemoteAddr, params, NOTIFY_URL);
+                    return null != order[0] && (Db.update(PAY_ORDER_INSTANCE, order[0].getOrderNumber(),
+                            params.get("level_en"), params.get("provider"),
+                            null == params.get("currency_type_id") ? 1 : params.get("currency_type_id"), userId,
+                            params.get("fee"), params.get("currency_amount"), realRemoteAddr, params.get("sign_type"),
+                            params.toString(), params.toString(), Md5Util.concat(order[0].getConf(), NULL_STRING),
+                            order[0].getConf().get("prepay_id"), params.get("platform"), params.get("type_id")) > 0
+                            && Db.update(ESOTERICA_ORDER, order[0].getOrderNumber(), userId, params.get("type_id")) > 0);
+                } catch (PaymentException e) {
+                    logger.error("payOrderRequest was error. exception = {} ", e);
+                    return false;
+                }
+            });
+            if (provider_config_id)
+                return order[0];
+            else
+                throw new ServiceException(getServiceName(), ErrorCode.THIRD_SERVICE_EXCEPTIOIN, "订单创建失败");
+        } catch (Throwable t) {
+            logger.error("payRequestV2 was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "发起支付失败，请稍后重试", t);
+        }
+    }
+
+    public boolean refund(int userId, String orderNo, String clientIp) throws ServiceException {
+        try {
+            Parameter info = new Parameter(record2map(Db.findFirst(PAY_ORDER_INFO, userId, orderNo)));
+            Payment payment = PaymentHelper.getPayment(info.i("request_provider_id"));
+            Map<String, ?> req = new HashMap<>();
+            final PaymentOrder[] order = {null};
+            boolean refund = Db.tx(() -> {
+                try {
+                    order[0] = payment.refund(info.s("request_provider_id"), info.i("fee"), clientIp, req);
+//                    return Db.update(REFUND_PAY_INFO, );
+                    return false;
+                } catch (PaymentException e) {
+                    logger.error("refund was error. exception = {}", e);
+                    return false;
+                }
+            });
+            if (refund) {
+                return true;
+            } else {
+                throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "发起退款失败，请稍后重试");
+            }
+        } catch (Throwable t) {
+            logger.error("refund was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "查询接口失败", t);
+        }
+    }
+
+    public boolean isDisposedOrder(int userId, String orderNo) throws ServiceException {
+        try {
+            return null == record2map(Db.findFirst(PAY_ORDER_INFO, userId, orderNo)) ? false : true;
+        } catch (Throwable t) {
+            logger.error("checkOrder was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "暂未查询到对应的订单信息", t);
+        }
+    }
+
+    private Parameter getParameter(String provider) throws ServiceException {
+        Map<String, Object> providerInfo = record2map(Db.findFirst(SELECT_PROVIDER_WITH_PROVIDER_EN, provider));
+        if (null == providerInfo) {
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "不存在的支付服务");
+        }
+        return new Parameter(providerInfo);
     }
 }

@@ -12,11 +12,11 @@ import java.util.Map;
 
 public class NewsService extends Service {
     private static final Logger logger = LoggerFactory.getLogger(NewsService.class);
-    private static final String SELECT_NEWS = "SELECT n.news_title, IFNULL(n.news_conver, '') news_conver, n.news_content, n.news_detail, " +
-            "n.news_tag, n.news_author, DATE_FORMAT(n.editor_create, '%Y-%m-%d') editor_create, n.news_provenance, IFNULL(n.news_provenance_url, '') provenance_url ";
+    private static final String SELECT_NEWS = "SELECT n.news_id, n.news_title, IFNULL(n.news_conver, '') news_conver, n.news_content, n.news_detail, " +
+            "n.news_tag, n.news_author, DATE_FORMAT(n.editor_create, '%Y-%m-%d %H:%i:%s') editor_create, n.news_provenance, IFNULL(n.news_provenance_url, '') provenance_url ";
     private static final String FROM_NEWS = " FROM qsr_team_season_news n WHERE n.enabled = 1 ORDER BY n.editor_create DESC ";
     private static final String SELECT_NEWS_INFO = "SELECT n.news_title, IFNULL(n.news_conver, '') news_conver, n.news_content, n.news_detail, n.news_tag, " +
-            "n.news_author, DATE_FORMAT(n.editor_create, '%Y-%m-%d') editor_create, n.news_provenance, IFNULL(n.news_provenance_url, '') provenance_url " +
+            "n.news_author, DATE_FORMAT(n.editor_create, '%Y-%m-%d %H:%i:%s') editor_create, n.news_provenance, IFNULL(n.news_provenance_url, '') provenance_url " +
             "FROM qsr_team_season_news n WHERE n.news_id = ? AND n.enabled = 1 ";
 
     public PageList<Map<String,Object>> getNews(int pageNumber, int pageSize) throws ServiceException {
@@ -24,7 +24,7 @@ public class NewsService extends Service {
             return page2PageList(DbUtil.paginate(pageNumber, pageSize, SELECT_NEWS, FROM_NEWS));
         } catch (Throwable t) {
             logger.error("getNews was error. exception = {}", t);
-            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "咨询加载失败", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "资讯加载失败", t);
         }
     }
 

@@ -20,12 +20,12 @@ public class DataService extends Service {
     private final static String DATA_GROUP = "SELECT g.group_id, g.group_name FROM qsr_team_season_lottery_group g WHERE g.enabled = 1;";
     private final static String SEASON_LIST = "SELECT CONCAT(YEAR(li.league_year), '/', SUBSTRING(DATE_FORMAT(li.league_year, '%Y') + 1, 3)) season, YEAR(li.league_year) now_year " +
             "  FROM qsr_team_season_ranking_list_item li " +
-            "  INNER JOIN qsr_league l ON l.lea_id = li.league_id " +
+            "  INNER JOIN qsr_league l ON l.lea_id = li.league_id AND l.enabled = 1 " +
             "  INNER JOIN qsr_team t ON t.team_id = li.team_id " +
             "  WHERE li.league_id = ? " +
             "  GROUP BY li.league_year ORDER BY li.league_year DESC";
     private final static String SEASON_LIST_ITEM = "SELECT t.team_id, t.team_name, t.team_icon, i.item_count, " +
-            "  i.item_vicotry, i.item_deuce, i.item_lose, i.item_in/i.item_out in_out, i.item_source " +
+            "  i.item_vicotry, i.item_deuce, i.item_lose, i.item_in, i.item_out, i.item_source " +
             "FROM qsr_team_season_ranking_list_item i " +
             "  INNER JOIN qsr_team t ON i.team_id = t.team_id " +
             "  INNER JOIN qsr_team_season_ranking_list_type lt ON i.type_id = lt.type_id " +
@@ -38,7 +38,7 @@ public class DataService extends Service {
             "WHERE i.league_id = ? AND YEAR(i.league_year) = YEAR(?) GROUP BY i.type_id";
 
     private final static int RANKING_GROUP_SOURCE = 1;
-    private static final String IS_SCORE = "SELECT l.is_score isScore FROM qsr_league l WHERE l.lea_id = ? ";
+    private static final String IS_SCORE = "SELECT l.is_score isScore FROM qsr_league l WHERE l.lea_id = ? AND l.enabled = 1  ";
 
     public List<Map<String, Object>> getDataList() throws ServiceException {
         try {

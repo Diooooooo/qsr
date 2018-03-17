@@ -8,33 +8,37 @@ import java.util.Map;
 
 public interface Payment extends Component {
 
-	public static int STATUS_NOT_PAY = 0;
-	public static int STATUS_WAIT_PAY = 10;
-	public static int STATUS_PAY_FAILED = 15;
-	public static int STATUS_PAY_SUCCESS = 20;
+	int STATUS_NOT_PAY = 0;
+	int STATUS_WAIT_PAY = 10;
+	int STATUS_PAY_FAILED = 15;
+	int STATUS_PAY_SUCCESS = 20;
 
-	public Provider getProvider();
+	Provider getProvider();
 
-	public PaymentOrder request(String paymentType, int fee, String clientIp,
+	PaymentOrder request(String paymentType, int fee, String clientIp,
 			Map<String, ?> req) throws PaymentException;
 
-	public PaymentOrder request(String paymentType, int fee, String clientIp,
+	PaymentOrder request(String paymentType, int fee, String clientIp,
 								Map<String, ?> req, String notifyUrl) throws PaymentException;
 
-	public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req,
+	PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req,
                                   String notifyUrl) throws PaymentException;
 
-    public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req)
+    PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req)
             throws PaymentException;
 
-	public PaymentResponse payOrder(Map<String, ?> resp) throws PaymentException;
+    PaymentOrder refund(String paymentType, int fee, String clientIp, Map<String, ?> req) throws PaymentException;
 
-	public PaymentResponse response(Map<String, ?> resp)
+    PaymentOrder refundQuery(String out_trade_no) throws PaymentException;
+
+	PaymentResponse payOrder(Map<String, ?> resp) throws PaymentException;
+
+	PaymentResponse response(Map<String, ?> resp)
 			throws PaymentException;
 
-	public Map<String, Object> getPaymentConfig(String paymentType, int fee,
+	Map<String, Object> getPaymentConfig(String paymentType, int fee,
 			Map<String, ?> req);
 
-	public NotifyContent getNotifyContent(PaymentResponse paymentResult);
+	NotifyContent getNotifyContent(PaymentResponse paymentResult);
 
 }

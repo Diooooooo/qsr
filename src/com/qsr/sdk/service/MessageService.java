@@ -21,7 +21,7 @@ public class MessageService extends Service {
             "            INNER JOIN qsr_team a ON s.season_team_a = a.team_id " +
             "            INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +
             "            WHERE s.status_id = 1 " +
-            "            AND DATE_FORMAT(s.season_start_play_time, '%Y-%m-%d') = DATE_FORMAT(NOW(), '%Y-%m-%d') " +
+            "            AND DATE_FORMAT(s.season_start_play_time, '%H-%i') > DATE_FORMAT(NOW(), '%H-%i') + INTERVAL 60 MINUTE " +
             "            AND (s.chatroom_id = 0 OR s.self_chatroom_id = 0)";
     private static final String MODIFY_CHATROOM = "UPDATE qsr_team_season s SET s.chatroom_id = ? WHERE s.season_id = ?";
     private static final String MODIFY_SELF_CHATROOM = "UPDATE qsr_team_season s SET s.self_chatroom_id = ? WHERE s.season_id = ?";
@@ -29,7 +29,7 @@ public class MessageService extends Service {
     private static final String SELECT_DELETE_ROOMS = "SELECT s.season_id, s.self_chatroom_id, s.chatroom_id " +
             "            FROM qsr_team_season s " +
             "            WHERE s.status_id = 4 " +
-            "            AND DATE_FORMAT(s.season_start_play_time, '%Y-%m-%d') <= DATE_FORMAT(NOW(), '%Y-%m-%d') " +
+            "            AND DATE_FORMAT(s.season_start_play_time, '%H-%i') <= DATE_FORMAT(NOW(), '%H-%i') " +
             "            AND (s.chatroom_id != 0 OR s.self_chatroom_id != 0) AND (s.chatroom_id != -1 OR s.self_chatroom_id != -1)";
 
     @Deprecated
@@ -53,8 +53,7 @@ public class MessageService extends Service {
 
     public void createChatRoom(String name, String desc, String owner) throws ServiceException {
         try {
-            Long roomId = MessageHelper.createChatRoom(name, desc, owner);
-            System.out.println(roomId);
+            MessageHelper.createChatRoom(name, desc, owner);
         } catch (Throwable t) {
             logger.error("createChatRoom was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.REPEAT_OPERATION, "创建聊天室失败", t);

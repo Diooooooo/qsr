@@ -18,7 +18,7 @@ public class NewsController extends WebApiController {
     public void getNews() {
         try {
             Fetcher f = this.fetch();
-            int pageSize = f.i("page_size", 10);
+            int pageSize = f.i("page_size", 100);
             int pageNumber = f.i("page_number", 1);
             NewsService newsService = this.getService(NewsService.class);
             PageList<Map<String, Object>> news = newsService.getNews(pageNumber, pageSize);

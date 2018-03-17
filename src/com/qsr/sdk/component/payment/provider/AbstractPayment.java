@@ -273,4 +273,13 @@ public abstract class AbstractPayment extends AbstractComponent implements
 	 */
 	@Override
 	public abstract NotifyContent getNotifyContent(PaymentResponse paymentResult);
+
+	@Override
+	public abstract PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req);
+
+	@Override
+	public abstract PaymentOrder refund(String paymentType, int fee, String clientIp, Map<String, ?> req) throws PaymentException;
+
+	@Override
+    public abstract PaymentOrder refundQuery(String out_trade_no) throws PaymentException;
 }

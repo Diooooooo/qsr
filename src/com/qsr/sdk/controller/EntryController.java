@@ -33,7 +33,7 @@ public class EntryController extends WebApiController {
             logger.debug("getSpecialists params = {} ", f);
             int userId = 0;
             EntryService entryService = this.getService(EntryService.class);
-            if (null != sessionkey) {
+            if (!StringUtil.isEmptyOrNull(sessionkey)) {
                 UserService userService = this.getService(UserService.class);
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }
@@ -52,7 +52,7 @@ public class EntryController extends WebApiController {
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             int userId = 0;
             EntryService entryService = this.getService(EntryService.class);
-            if (null != sessionkey) {
+            if (!StringUtil.isEmptyOrNull(sessionkey)) {
                 UserService userService = this.getService(UserService.class);
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }
@@ -71,7 +71,7 @@ public class EntryController extends WebApiController {
             int pageSize = f.i("pageSize", 6);
             int userId = 0;
             EntryService entryService = this.getService(EntryService.class);
-            if (null != sessionkey) {
+            if (!StringUtil.isEmptyOrNull(sessionkey)) {
                 UserService userService = this.getService(UserService.class);
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }

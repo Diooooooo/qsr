@@ -150,7 +150,17 @@ public class AliPayment extends AbstractPayment {
     }
 
     @Override
-    public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req) throws PaymentException {
+    public PaymentOrder reRequest(String paymentType, int fee, String clientIp, Map<String, ?> req) {
+        return null;
+    }
+
+    @Override
+    public PaymentOrder refund(String paymentType, int fee, String clientIp, Map<String, ?> req) {
+        return null;
+    }
+
+    @Override
+    public PaymentOrder refundQuery(String out_trade_no) throws PaymentException {
         return null;
     }
 

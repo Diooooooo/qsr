@@ -5,6 +5,7 @@ import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.lang.Parameter;
+import com.qsr.sdk.service.EsotericaService;
 import com.qsr.sdk.service.PayOrderService;
 import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.util.ErrorCode;
@@ -177,6 +178,67 @@ public class PayOrderController extends WebApiController {
             this.renderData(SUCCESS);
         } catch (Throwable t) {
             this.renderException("delPayOrder", t);
+        }
+    }
+
+    public void payRequestV2() {
+        try {
+            Fetcher f  = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String esotericaNo = f.s("esotericaNo");
+            String provider = f.s("provider");
+            String platform = f.s("platform", "Android");
+            if (!StringUtil.isEmptyOrNull(sessionkey) || !StringUtil.isEmptyOrNull(esotericaNo) || !StringUtil.isEmptyOrNull(provider)) {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不可为空");
+            }
+            if (!Arrays.asList(PAY_PROVIDER).contains(provider)) {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "暂不支持的支付方式");
+            }
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            Map<String, Object> info = esotericaService.getEsotericaInfo(esotericaNo);
+            if (null == info) {
+                throw new ApiException(ErrorCode.PRODUCT_NOT_EXIST, "参数错误");
+            }
+            Map<String, Object> params = new HashMap<>();
+            params.put("fee", info.get("price"));
+            params.put("currency_amount", info.get("price"));
+            params.put("type_id", info.get("esoterica_no"));
+            params.put("currency_type_id", info.get("type_id"));
+            params.put("purchase_Name", info.get("title"));
+            params.put("level_en", info.get("title"));
+            params.put("provider", provider);
+            params.put("sign_type", "MD5");
+            params.put("platform", platform);
+            PayOrderService payOrderService = this.getService(PayOrderService.class);
+            PaymentOrder paymentOrder = payOrderService.payRequestV2(userId, (Integer) info.get("price"), provider,
+                    getRealRemoteAddr(), params);
+            if (null == paymentOrder) {
+                throw new ApiException(ErrorCode.INTERNAL_EXCEPTION, "申请退款错误，请稍后再试");
+            } else {
+                this.renderData(SUCCESS);
+            }
+        } catch (Throwable t) {
+            this.renderException("payRequestV2", t);
+        }
+    }
+
+    public void refund() {
+        try {
+            Fetcher f = this.fetch();
+            String sessionkey = f.s("sessionkey");
+            String orderNo = f.s("orderNo");
+            UserService userService = this.getService(UserService.class);
+            int userId = userService.getUserIdBySessionKey(sessionkey);
+            PayOrderService payOrderService = this.getService(PayOrderService.class);
+            if (!payOrderService.isDisposedOrder(userId, orderNo)) {
+                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不正确");
+            }
+            payOrderService.refund(userId, orderNo, getRealRemoteAddr());
+            this.renderData(SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("refund", t);
         }
     }
 }

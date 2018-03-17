@@ -47,7 +47,7 @@ public class TeamController extends WebApiController {
             int teamId = f.i("teamId");
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             int userId = 0;
-            if (null != sessionkey) {
+            if (!StringUtil.isEmptyOrNull(sessionkey)) {
                 UserService userService = this.getService(UserService.class);
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }
@@ -66,7 +66,7 @@ public class TeamController extends WebApiController {
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             SportsManService sportsManService = this.getService(SportsManService.class);
             int userId = 0;
-            if (null != sessionkey) {
+            if (!StringUtil.isEmptyOrNull(sessionkey)) {
                 UserService userService = this.getService(UserService.class);
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }
@@ -106,7 +106,7 @@ public class TeamController extends WebApiController {
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             UserService userService = this.getService(UserService.class);
             int userId = 0;
-            if (null != sessionkey)
+            if (!StringUtil.isEmptyOrNull(sessionkey))
                 userId = userService.getUserIdBySessionKey(sessionkey);
             SeasonService seasonService = this.getService(SeasonService.class);
             List<Map<String, Object>> seasons = seasonService.getSeasonListByTeamIdWithFive(teamId, userId);
@@ -122,7 +122,7 @@ public class TeamController extends WebApiController {
             int seasonId = f.i("season_id");
             String sessionkey = f.s("seassionkey", StringUtil.NULL_STRING);
             int userId = 0;
-            if (null != sessionkey) {
+            if (!StringUtil.isEmptyOrNull(sessionkey)) {
                 UserService userService = this.getService(UserService.class);
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }
@@ -143,16 +143,17 @@ public class TeamController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             int seasonId = f.i("season_id");
+            int pageSize = f.i("pageSize", 3);
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             int userId = 0;
-            if (null != sessionkey) {
+            if (!StringUtil.isEmptyOrNull(sessionkey)) {
                 UserService userService = this.getService(UserService.class);
                 userId = userService.getUserIdBySessionKey(sessionkey);
             }
             SeasonService seasonService = this.getService(SeasonService.class);
             Parameter p = new Parameter(seasonService.getSeasonInfo(seasonId, userId));
-            List<Map<String, Object>> a = seasonService.getSeasonListByTeamIdWithThree(p.i("teamAId"), userId, 3);
-            List<Map<String, Object>> b = seasonService.getSeasonListByTeamIdWithThree(p.i("teamBId"), userId, 3);
+            List<Map<String, Object>> a = seasonService.getSeasonListByTeamIdWithThree(p.i("teamAId"), userId, pageSize);
+            List<Map<String, Object>> b = seasonService.getSeasonListByTeamIdWithThree(p.i("teamBId"), userId, pageSize);
             Map<String, Object> info = new HashMap<>();
             info.put("a", a);
             info.put("b", b);
@@ -170,7 +171,7 @@ public class TeamController extends WebApiController {
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             UserService userService = this.getService(UserService.class);
             int userId = 0;
-            if (null != sessionkey)
+            if (!StringUtil.isEmptyOrNull(sessionkey))
                 userId = userService.getUserIdBySessionKey(sessionkey);
             SeasonService seasonService = this.getService(SeasonService.class);
             Parameter p = new Parameter(seasonService.getSeasonInfo(season_id, userId));
@@ -188,7 +189,7 @@ public class TeamController extends WebApiController {
             String sessionkey = f.s("sessionkey", StringUtil.NULL_STRING);
             UserService userService = this.getService(UserService.class);
             int userId = 0;
-            if (null != sessionkey)
+            if (!StringUtil.isEmptyOrNull(sessionkey))
                 userId = userService.getUserIdBySessionKey(sessionkey);
             SeasonService seasonService = this.getService(SeasonService.class);
             List<Map<String, Object>> seasons = seasonService.getSeasonListByTeamIdWithYear(teamId, userId);
@@ -197,4 +198,5 @@ public class TeamController extends WebApiController {
             this.renderException("getSeasonListByTeamIdWithYear", t);
         }
     }
+
 }

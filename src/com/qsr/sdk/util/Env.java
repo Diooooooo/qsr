@@ -57,6 +57,7 @@ public class Env {
     private static String information;
     private static String chatRoom;
     private static String DIVISOR;
+    private static String PURCHASE_NOTES;
 
     public static String[] getRealIpHeaders() {
         if (real_ip_headers == null) {
@@ -343,5 +344,12 @@ public class Env {
             DIVISOR = parameter.s("divisor", "_qsr_");
         }
         return DIVISOR;
+    }
+
+    public static String getPurchaseNotes() {
+        if (null == PURCHASE_NOTES) {
+            PURCHASE_NOTES = parameter.s("purchase_notes", "");
+        }
+        return PURCHASE_NOTES;
     }
 }

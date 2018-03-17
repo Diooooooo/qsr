@@ -16,10 +16,10 @@ public class LeagueService extends Service {
 
     final static Logger logger = LoggerFactory.getLogger(LeagueService.class);
     final static String SELECT = "SELECT l.lea_name leagueName, l.lea_id leagueId, IFNULL(l.description, '') desc_ ";
-    final static String FROM_All = "FROM qsr_league l ORDER BY l.sorted DESC";
-    final static String FROM_FIVE = "FROM qsr_league l ORDER BY l.sorted DESC";
-    final static String FROM_AVERAGE = "FROM qsr_league l WHERE l.is_average = 1 ORDER BY l.sorted DESC";
-    private static final String LEAGUE_INFO = "FROM qsr_league l WHERE l.lea_id = ? ";
+    final static String FROM_All = "FROM qsr_league l WHERE l.enabled = 1 ORDER BY l.sorted DESC";
+    final static String FROM_FIVE = "FROM qsr_league l WHERE l.enabled = 1 ORDER BY l.sorted DESC";
+    final static String FROM_AVERAGE = "FROM qsr_league l WHERE l.is_average = 1 AND l.enabled = 1 ORDER BY l.sorted DESC";
+    private static final String LEAGUE_INFO = "FROM qsr_league l WHERE l.lea_id = ? AND l.enabled = 1 ";
 
     @CacheAdd(timeUnit = TimeUnit.HOURS, timeout = 2)
     public List<Map<String, Object>> getAllLeagues() throws ServiceException {

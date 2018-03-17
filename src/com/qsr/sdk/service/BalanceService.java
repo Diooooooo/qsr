@@ -98,4 +98,13 @@ public class BalanceService extends Service {
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载余额失败", t);
         }
     }
+
+    public boolean payEsotericaWithProvider(int userId, String esoterica_id) throws ServiceException {
+        try {
+            return true;
+        } catch (Throwable t) {
+            logger.error("payEsotericaWithProvider was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "购买锦囊失败", t);
+        }
+    }
 }
