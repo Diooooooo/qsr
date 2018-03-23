@@ -38,9 +38,9 @@ public class PayOrderController extends WebApiController {
 //            int fee = f.i("fee", 0);
             String provider = f.s("provider", PAY_PROVIDER[0]);
 
-            if (!Arrays.asList(LEVELS).contains(typeId)) {
-                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "暂不支持自定义金额充值");
-            }
+//            if (!Arrays.asList(LEVELS).contains(typeId)) {
+//                throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "暂不支持自定义金额充值");
+//            }
 
             if (!Arrays.asList(PAY_PROVIDER).contains(provider)) {
                 throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "支付方式不正确");
@@ -50,22 +50,24 @@ public class PayOrderController extends WebApiController {
             int userId = userService.getUserIdBySessionKey(sessionkey);
 
             PayOrderService payOrderService = this.getService(PayOrderService.class);
-            Parameter levelInfo = new Parameter(payOrderService.getLevelInfo(typeId));
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            Parameter levelInfo = new Parameter(esotericaService.getEsotericaInfo(typeId));
             Map<String, Object> params = new HashMap<>();
             if (null == levelInfo) {
                 throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不合法");
             } else {
-                params.put("fee", levelInfo.i("level_count"));
-                params.put("currency_amount", levelInfo.i("level_count"));
-                params.put("type_id", levelInfo.i("level_id"));
-                params.put("currency_type_id", levelInfo.i("currency_type_id"));
-                params.put("purchase_Name", levelInfo.s("level_name"));
-                params.put("level_en", levelInfo.s("level_en"));
+                params.put("fee", levelInfo.i("price"));
+                params.put("currency_amount", levelInfo.i("price"));
+                params.put("type_id", typeId);
+                params.put("currency_type_id", levelInfo.i("type_id"));
+                params.put("purchase_Name", "购买锦囊");
+                params.put("esoterica_no", typeId);
+                params.put("level_en", StringUtil.NULL_STRING);
             }
             params.put("provider", provider);
             params.put("sign_type", "MD5");
             params.put("platform", platform);
-            PaymentOrder paymentOrder = payOrderService.payOrderRequst(userId, levelInfo.i("level_count"), provider,
+            PaymentOrder paymentOrder = payOrderService.payOrderRequst(userId, levelInfo.i("price"), provider,
                     getRealRemoteAddr(), params);
             Map<String, String> info = paymentOrder.getConf();
             info.remove("detail");
@@ -112,7 +114,8 @@ public class PayOrderController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             String sessionkey = f.s("sessionkey");
-            String type = f.s("t", "A");
+            String type = f.s("type", "A");
+            logger.debug("getPayOrderList params = {}", f);
             int pageNumber = f.i("pageNumber", DEFAULT_PAGE_NUMBER);
             int pageSize = f.i("pageSize", DEFAULT_PAGE_SIZE);
             if (!Arrays.asList(TYPES).contains(type)) {
@@ -229,6 +232,7 @@ public class PayOrderController extends WebApiController {
             Fetcher f = this.fetch();
             String sessionkey = f.s("sessionkey");
             String orderNo = f.s("orderNo");
+            logger.debug("refund was params = {} ", f);
             UserService userService = this.getService(UserService.class);
             int userId = userService.getUserIdBySessionKey(sessionkey);
             PayOrderService payOrderService = this.getService(PayOrderService.class);

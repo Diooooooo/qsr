@@ -58,6 +58,10 @@ public class Env {
     private static String chatRoom;
     private static String DIVISOR;
     private static String PURCHASE_NOTES;
+    private static String p12;
+    private static String PAY_NOTIFY;
+    private static String REFUND_NOTIFY;
+    private static String PIC_FORCE;
 
     public static String[] getRealIpHeaders() {
         if (real_ip_headers == null) {
@@ -351,5 +355,30 @@ public class Env {
             PURCHASE_NOTES = parameter.s("purchase_notes", "");
         }
         return PURCHASE_NOTES;
+    }
+
+    public static String getP12() {
+        if (null == p12) {
+            p12 = parameter.s("p12");
+        }
+        return p12;
+    }
+
+    public static String getPayNotify() {
+        if (null == PAY_NOTIFY)
+            PAY_NOTIFY = parameter.s("pay_notify");
+        return PAY_NOTIFY;
+    }
+
+    public static String getRefundNotify() {
+        if (null == REFUND_NOTIFY)
+            REFUND_NOTIFY = parameter.s("refund_notify");
+        return REFUND_NOTIFY;
+    }
+
+    public static String getPicForce() {
+        if (null == PIC_FORCE)
+            PIC_FORCE = parameter.s("pic_force");
+        return PIC_FORCE;
     }
 }

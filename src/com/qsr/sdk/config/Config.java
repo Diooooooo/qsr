@@ -36,7 +36,6 @@ public class Config extends JFinalConfig {
 		me.add("/user", UserController.class);
 		me.add("/push", PushController.class);
 		me.add("/sms", SmsController.class);
-		me.add("/oauth2", OAuth2Controller.class);
 		me.add("/entry", EntryController.class);
 		me.add("/season", SeasonController.class);
 		me.add("/data", DataController.class);
@@ -53,6 +52,7 @@ public class Config extends JFinalConfig {
 		me.add("payOrder", PayOrderController.class);
 		me.add("notify", PayOrderNotifyController.class);
 		me.add("internal", InternalController.class);
+        me.add("manager", ManagerController.class);
 	}
 
 	@Override

@@ -2,6 +2,7 @@ package com.qsr.sdk.service;
 
 import com.jfinal.plugin.activerecord.Db;
 import com.qsr.sdk.service.exception.ServiceException;
+import com.qsr.sdk.service.serviceproxy.annotation.CacheAdd;
 import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +19,7 @@ public class TeamService extends Service {
      * @return
      * @throws ServiceException
      */
+    @CacheAdd(timeout = 2 * 60 * 60)
     public Map<String, Object> getTeamInfo(int teamId, int userId) throws ServiceException {
         try {
             String sql = "SELECT t.team_id AS teamId, t.team_name AS teamName, IFNULL(t.team_icon, \"\") AS teamIcon, "+

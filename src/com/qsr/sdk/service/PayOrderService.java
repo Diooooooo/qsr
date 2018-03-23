@@ -26,7 +26,6 @@ public class PayOrderService extends Service {
     private static final String SELECT_PROVIDERS = "SELECT p.provider_id, p.provider_en " +
             "FROM qsr_payorder_provider p WHERE p.enabled = 1 ORDER BY p.sorted DESC";
     private static final String SELECT_PROVIDER_WITH_PROVIDER_EN = "SELECT provider_config_id FROM qsr_payorder_provider WHERE provider_en = ? AND enabled = 1 ";
-    private static final String NOTIFY_URL = "http://liangqiujiang.com:8080/api/notify/payNotify";
     private static final String PAY_ORDER_INSTANCE = "INSERT INTO qsr_payorder_request(order_number,request_date,user_id," +
             "request_provider_id,payee_account,level_id,fee,currency_amount,currency_type_id " +
             " ,status_id,client_ip,sign_type,original_body,original_detail,original_data, prepay_id, app_type_id) " +
@@ -39,7 +38,7 @@ public class PayOrderService extends Service {
             "INNER JOIN qsr_user_currency_type t ON t.currency_type_id = i.currency_type_id " +
             "LEFT JOIN qsr_payorder_request_level l ON l.level_en = i.level_en " +
             "LEFT JOIN qsr_app_type at ON at.type_name = i.platform " +
-            "ON DUPLICATE UPDATE KEY request_date = NOW(), request_provider_id = i.provider, level_id = l.level_id, " +
+            "ON DUPLICATE KEY UPDATE request_date = NOW(), request_provider_id = p.provider_id, level_id = IFNULL(l.level_id, i.fee), " +
             "fee = IF(0 = l.level_count, i.fee, l.level_count), " +
             "currency_amount = IF(0 = l.level_count, i.currency_amount, l.level_count)," +
             "client_ip = i.clientIp, original_body = i.original_body, original_detail = i.original_detail, original_data = i.original_data, prepay_id = i.prepay_id ";
@@ -50,25 +49,28 @@ public class PayOrderService extends Service {
     private static final String[] TYPES = {" AND l.createtime >= NOW() - INTERVAL 1 WEEK",
             " AND l.createtime >= NOW() - INTERVAL 2 WEEK", " AND l.createtime >= NOW() - INTERVAL 1 MONTH",
             " AND l.createtime >= NOW() - INTERVAL 3 MONTH"};
-    private static final String SELECT_PAYORDER_WITH_STATUS = "SELECT l.level_count, " +
-            "CONCAT('匠币充值[', l.level_count, ']') title, l.level_name, q.order_number, q.fee, " +
-            "s.status_id, q.createtime, q.updatetime ";
+    private static final String SELECT_PAYORDER_WITH_STATUS = "SELECT q.fee/100 level_count, " +
+            "CONCAT('购买锦囊[', e.esoterica_title, ']') title, e.esoterica_title, q.order_number, q.fee/100 fee, " +
+            "s.status_id, q.createtime, q.updatetime, e.status_id os_id ";
     private static final String FROM_PAYORDER_WITH_ALL_STATUS = " FROM qsr_payorder_request q " +
             "  INNER JOIN qsr_payorder_request_status s ON q.status_id = s.status_id " +
-            "  INNER JOIN qsr_payorder_request_level l ON q.level_id = l.level_id " +
-            "  WHERE q.user_id = ? " +
-            "  AND q.status_id IN (1, 2, 3, 4, 5, 6) " +
+//            "  INNER JOIN qsr_payorder_request_level l ON q.level_id = l.level_id " +
+            "  INNER JOIN qsr_team_season_esoterica e ON e.esoterica_no = q.level_id " +
+            "  WHERE q.user_id = ? AND q.enabled = 1 " +
+            "  AND q.status_id IN (1, 2, 3, 4, 5, 6, 7, 8, 9) " +
             "  ORDER BY q.updatetime DESC";
     private static final String FROM_PAYORDER_WITH_OVER_STATUS = " FROM qsr_payorder_request q " +
             "  INNER JOIN qsr_payorder_request_status s ON q.status_id = s.status_id " +
-            "  INNER JOIN qsr_payorder_request_level l ON q.level_id = l.level_id " +
-            "  WHERE q.user_id = ? " +
-            "  AND q.status_id = 4 " +
+//            "  INNER JOIN qsr_payorder_request_level l ON q.level_id = l.level_id " +
+            "  INNER JOIN qsr_team_season_esoterica e ON e.esoterica_no = q.level_id " +
+            "  WHERE q.user_id = ? AND q.enabled = 1 " +
+            "  AND q.status_id IN (4, 8) " +
             "  ORDER BY q.updatetime DESC";
     private static final String FROM_PAYORDER_WITH_WAIT_STATUS = " FROM qsr_payorder_request q " +
             "  INNER JOIN qsr_payorder_request_status s ON q.status_id = s.status_id " +
-            "  INNER JOIN qsr_payorder_request_level l ON q.level_id = l.level_id " +
-            "  WHERE q.user_id = ? " +
+//            "  INNER JOIN qsr_payorder_request_level l ON q.level_id = l.level_id " +
+            "  INNER JOIN qsr_team_season_esoterica e ON e.esoterica_no = q.level_id " +
+            "  WHERE q.user_id = ? AND q.enabled = 1 " +
             "  AND q.status_id IN (3, 5, 6) " +
             "  ORDER BY q.updatetime DESC";
     private static final String SAVE_PAYORDER_NOTIFY = "INSERT INTO qsr_payorder_result(order_number,provider_id," +
@@ -87,7 +89,7 @@ public class PayOrderService extends Service {
     private static final String BALANCE_EDCATION = "INSERT INTO qsr_user_balance(user_id,currency_type_id," +
             "total,block,balance) SELECT r.user_id, 3, r.fee, r.fee, r.fee FROM (SELECT ? AS outTradeno) i " +
             "INNER JOIN qsr_payorder_request r ON r.order_number = i.outTradeno AND r.enabled = 1 " +
-            "AND r.currency_used = 1 AND r.status_id = 4 " +
+//            "AND r.currency_used = 1 AND r.status_id = 8 " +
             "INNER JOIN qsr_users u ON u.id = r.user_id " +
             "ON DUPLICATE KEY UPDATE total = total + r.fee, balance = balance + r.fee, block = block + r.fee";
     private static final String BALANCE_EDCATION_LOG = "INSERT INTO qsr_user_balance_log(user_id, type, " +
@@ -95,24 +97,46 @@ public class PayOrderService extends Service {
             "SELECT r.user_id, 1, 3, r.fee, IFNULL(b.block, 0), IFNULL(b.total, 0), i.description, i.causeTypeId, i.cause_id " +
             "FROM (SELECT ? AS outTradeno, ? AS causeTypeId, ? AS description, ? as cause_id) i " +
             "INNER JOIN qsr_payorder_request r ON r.order_number = i.outTradeno AND r.enabled = 1 " +
-            "AND r.currency_used = 1 and r.status_id = 4 " +
+//            "AND r.currency_used = 1 and r.status_id = 8 " +
             "INNER JOIN qsr_users u ON u.id = r.user_id " +
             "LEFT JOIN qsr_user_balance b ON b.user_id = r.user_id";
-    private static final String SELECT_PAYORDER_INFO = "SELECT r.order_number, l.level_name purchase_Name " +
-            "FROM qsr_payorder_request r " +
-            "INNER JOIN qsr_payorder_request_level l ON r.level_id = l.level_id" +
-            "WHERE r.user_id = ? AND r.order_number = ? ";
+    private static final String SELECT_PAYORDER_INFO = "SELECT r.order_number, e.esoterica_title purchase_Name, " +
+            "r.currency_amount fee, r.currency_amount, r.sign_type FROM qsr_payorder_request r " +
+            "INNER JOIN qsr_team_season_esoterica e ON e.esoterica_no = r.level_id " +
+            "WHERE r.user_id = ? AND r.order_number = ? AND r.status_id = 2 AND r.enabled = 1";
     private static final String CANCEL_PAY_ORDER = "UPDATE qsr_payorder_request r " +
             "SET r.status_id = 6 WHERE r.user_id = ? AND r.order_number = ? AND r.enabled = 1 " +
             "AND r.currency_used = 0 AND r.status_id = 2";
     private static final String DEL_PAY_ORDER = "UPDATE qsr_payorder_request r " +
             "SET r.enabled = 0 WHERE r.user_id = ? AND r.order_number = ?";
     private static final String ESOTERICA_ORDER = "INSERT INTO qsr_pay_esoterica(order_number,user_id,esoterica_no) VALUES ( ?, ?, ?)";
-    private static final String PAY_ORDER_INFO = "SELECT r.user_id, r.request_provider_id, r.order_number, r.fee FROM qsr_payorder_request r " +
+    private static final String PAY_ORDER_INFO = "SELECT r.user_id, p.provider_config_id, r.order_number, r.fee FROM qsr_payorder_request r " +
             "INNER JOIN qsr_payorder_result pr ON r.order_number = pr.order_number " +
             "INNER JOIN qsr_team_season_esoterica e ON r.level_id = e.esoterica_no " +
-            "WHERE r.enabled = 1 and r.status_id = 1  and e.status_id != 2 and e.enabled = 1 " +
+            "INNER JOIN qsr_payorder_provider p ON p.provider_id = r.request_provider_id " +
+            "WHERE r.enabled = 1 and r.status_id = 4  and e.status_id = 3 and e.enabled = 1 " +
             "AND r.user_id = ? AND r.order_number = ? ";
+    private static final String REFUND_PAY_INFO = "INSERT INTO qsr_payorder_refund_request(" +
+            "  order_number,request_date,user_id,payorder_no,fee,currency_type_id,original_body,description) " +
+            "  SELECT i.outTradeNo, NOW(), i.userId, i.payOrderNo, i.fee, 4, i.body, i.description " +
+            "  FROM (SELECT ? AS outTradeNo, ? AS userId, ? AS payOrderNo, ? AS fee, ? AS body, ? AS description) i";
+    private static final String MODIFY_REQUEST_ESOTERICA = "UPDATE qsr_payorder_request r " +
+            "INNER JOIN qsr_pay_esoterica e ON r.order_number = e.order_number " +
+            "SET r.status_id = 7, e.status_id = 5 " +
+            "WHERE r.order_number = ? AND r.user_id = ?";
+    private static final String SAVE_REFUND_NOTIFY = "INSERT INTO qsr_payorder_refund_result " +
+            "(order_number,provider_id,return_code,return_message,original_body,original_notify) " +
+            "SELECT i.orderNumber, p.provider_id, i.returnCode, i.returnMsg, i.notify, i.body " +
+            "FROM (SELECT ? AS orderNumber, ? AS provider, ? AS returnCode, ? AS returnMsg, ? AS notify, ? as body) i " +
+            "INNER JOIN qsr_payorder_provider p ON p.provider_en = i.provider AND p.enabled = 1 ";
+    private static final String MODITY_REFUND = "UPDATE qsr_payorder_refund_request r " +
+            "  INNER JOIN qsr_payorder_refund_result rr ON r.payorder_no = rr.order_number " +
+            "  SET r.status_id = ? WHERE r.payorder_no = ?";
+    private static final String REFUND_INFO = "SELECT r.payorder_no " +
+            "FROM qsr_payorder_refund_request r WHERE r.payorder_no = ? AND r.enabled = 1 and r.status_id = 1";
+
+    private static final String PAY_REQUEST_INFO = "SELECT r.user_id, r.order_number FROM qsr_payorder_request r WHERE r.order_number = ?";
+    private static final String MODIFY_REQUEST_INFO = "UPDATE qsr_pay_esoterica e SET e.status_id = ? WHERE e.user_id = ? AND e.order_number = ?";
 
     public List<Map<String,Object>> getPayOrderLevel() throws ServiceException {
         try {
@@ -138,13 +162,15 @@ public class PayOrderService extends Service {
             final PaymentOrder[] order = {null};
             boolean provider_config_id = Db.tx(() -> {
                 try {
-                    order[0] = payment.request(p.s("provider_config_id"), fee, clientIP, req, NOTIFY_URL);
+                    order[0] = payment.request(p.s("provider_config_id"), fee, clientIP, req, Env.getPayNotify());
                     return null != order[0] && (Db.update(PAY_ORDER_INSTANCE, order[0].getOrderNumber(),
                             req.get("level_en"), req.get("provider"),
-                            null == req.get("currency_type_id") ? 1 : req.get("currency_type_id"), userId,
-                            req.get("fee"), req.get("currency_amount"), clientIP, req.get("sign_type"),
+                            null == req.get("currency_type_id") ? 4 : req.get("currency_type_id"), userId,
+                            fee, req.get("currency_amount"), clientIP, req.get("sign_type"),
                             req.toString(), req.toString(), Md5Util.concat(order[0].getConf(), NULL_STRING),
-                            order[0].getConf().get("prepay_id"), req.get("platform"), StringUtil.EMPTY_STRING) > 0);
+                            order[0].getConf().get("prepay_id"), req.get("platform"), req.get("esoterica_no")) > 0
+                            && Db.update(ESOTERICA_ORDER, order[0].getOrderNumber(), userId, req.get("esoterica_no")) > 0
+                    );
                 } catch (PaymentException e) {
                     logger.error("payOrderRequest was error. exception = {} ", e);
                     return false;
@@ -178,7 +204,7 @@ public class PayOrderService extends Service {
             boolean provider_config_id = Db.tx(() -> {
                 try {
                     order[0] = payment.reRequest(p.s("provider_config_id"), (int) orderInfo.get("fee"),
-                            clientIP, req, (String) orderInfo.get("notify_url"));
+                            clientIP, req, Env.getPayNotify());
                     return null != order[0] && Db.update(PAY_ORDER_INSTANCE, orderNumber, orderInfo.get("user_id"),
                             orderInfo.get("fee"), orderInfo.get("currency_amount"), clientIP,
                             orderInfo.get("sign_type"), orderInfo.toString(), orderInfo.toString(),
@@ -257,20 +283,21 @@ public class PayOrderService extends Service {
         }
     }
 
-    public boolean modifyPayOrderWithNotify(String outTradeNo, int provider, String resultCode, int statusId, String openid) throws ServiceException {
+    public boolean modifyPayOrderWithNotify(String outTradeNo, int provider, String resultCode, int statusId, String openid, int userId) throws ServiceException {
         try {
             boolean flag = Db.tx(() -> {
                 try {
                     int[] logIds = {0};
-                    return Db.update(MODITY_PAYORDER, statusId, openid, outTradeNo, provider, resultCode) > 0
-                            && DbUtil.update(BALANCE_EDCATION, logIds, outTradeNo) > 0
-                            && Db.update(BALANCE_EDCATION_LOG, outTradeNo, 1, "购买锦囊", logIds[0]) > 0 ;
+                    boolean a = Db.update(MODITY_PAYORDER, statusId, openid, outTradeNo, provider, resultCode) > 0;
+                            boolean b = Db.update(MODIFY_REQUEST_INFO, 1, userId, outTradeNo) > 0;
+                            boolean c = DbUtil.update(BALANCE_EDCATION, logIds, outTradeNo) > 0;
+                            boolean d = Db.update(BALANCE_EDCATION_LOG, outTradeNo, 1, "购买锦囊", logIds[0]) > 0 ;
+                            return a && b && c && d;
                 } catch (Throwable t) {
                     logger.error("modify notify was error. exception = {} ", t);
                     return false;
                 }
             });
-            logger.debug("notify result = {}", flag);
             return flag;
         } catch (Throwable t) {
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "修改订单失败", t);
@@ -310,13 +337,13 @@ public class PayOrderService extends Service {
             final PaymentOrder[] order = {null};
             boolean provider_config_id = Db.tx(() -> {
                 try {
-                    order[0] = payment.request(p.s("provider_config_id"), level_count, realRemoteAddr, params, NOTIFY_URL);
+                    order[0] = payment.request(p.s("provider_config_id"), level_count, realRemoteAddr, params, Env.getPayNotify());
                     return null != order[0] && (Db.update(PAY_ORDER_INSTANCE, order[0].getOrderNumber(),
                             params.get("level_en"), params.get("provider"),
                             null == params.get("currency_type_id") ? 1 : params.get("currency_type_id"), userId,
                             params.get("fee"), params.get("currency_amount"), realRemoteAddr, params.get("sign_type"),
                             params.toString(), params.toString(), Md5Util.concat(order[0].getConf(), NULL_STRING),
-                            order[0].getConf().get("prepay_id"), params.get("platform"), params.get("type_id")) > 0
+                            order[0].getConf().get("prepay_id"), params.get("platform"), params.get("type_id"), params.get("type_id")) > 0
                             && Db.update(ESOTERICA_ORDER, order[0].getOrderNumber(), userId, params.get("type_id")) > 0);
                 } catch (PaymentException e) {
                     logger.error("payOrderRequest was error. exception = {} ", e);
@@ -336,14 +363,20 @@ public class PayOrderService extends Service {
     public boolean refund(int userId, String orderNo, String clientIp) throws ServiceException {
         try {
             Parameter info = new Parameter(record2map(Db.findFirst(PAY_ORDER_INFO, userId, orderNo)));
-            Payment payment = PaymentHelper.getPayment(info.i("request_provider_id"));
-            Map<String, ?> req = new HashMap<>();
+            Payment payment = PaymentHelper.getPayment(info.i("provider_config_id"));
+            Map<String, String> req = new HashMap<>();
+            req.put("out_trade_no", orderNo);
+            req.put("fee", String.valueOf(info.i("fee")));
             final PaymentOrder[] order = {null};
             boolean refund = Db.tx(() -> {
                 try {
-                    order[0] = payment.refund(info.s("request_provider_id"), info.i("fee"), clientIp, req);
-//                    return Db.update(REFUND_PAY_INFO, );
-                    return false;
+                    order[0] = payment.refund(info.s("provider_config_id"), info.i("fee"), clientIp, req);
+                    Map<String, String> o = order[0].getConf();
+                            boolean a = Db.update(REFUND_PAY_INFO, o.get("out_refund_no"), userId, orderNo,
+                            info.i("fee"), o.get("content"), StringUtil.EMPTY_STRING) > 0;
+                            boolean b = Db.update(MODIFY_REQUEST_INFO, 5, userId, orderNo) > 0;
+                            boolean c = Db.update(MODIFY_REQUEST_ESOTERICA, orderNo, userId) > 0;
+                    return null != order[0] && a && b && c;
                 } catch (PaymentException e) {
                     logger.error("refund was error. exception = {}", e);
                     return false;
@@ -375,5 +408,50 @@ public class PayOrderService extends Service {
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "不存在的支付服务");
         }
         return new Parameter(providerInfo);
+    }
+
+    public void refundNotify(String outTradeNo, int provider, String resultCode, String openid, int userId)
+            throws ServiceException {
+        try {
+            Db.tx(() -> {
+                int[] logIds = {0};
+                boolean a = Db.update(MODITY_REFUND, 2, outTradeNo) > 0;
+                        boolean b = Db.update(MODITY_PAYORDER, 8, openid, outTradeNo, provider, resultCode) > 0;
+                        boolean c = Db.update(MODIFY_REQUEST_INFO, 6, userId, outTradeNo) > 0;
+                        boolean d = DbUtil.update(BALANCE_EDCATION, logIds, outTradeNo) > 0;
+                        boolean e = Db.update(BALANCE_EDCATION_LOG, outTradeNo, 1, "锦囊未中，全额退款", logIds[0]) > 0 ;
+                        return a && b && c && d && e;
+            });
+        } catch (Throwable t) {
+            logger.error("refundNotify was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.THIRD_SERVICE_EXCEPTIOIN, "退款失败", t);
+        }
+    }
+
+    public void saveRefundNotify(String orderNumber, String provider, String returnCode, String returnMsg, String detail, String res) throws ServiceException {
+        try {
+            Db.update(SAVE_REFUND_NOTIFY, orderNumber, provider, returnCode, returnMsg, detail, res);
+        } catch (Throwable t) {
+            logger.error("saveRefundNotify was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.DATA_SAVA_FAILED, "保存通知失败", t);
+        }
+    }
+
+    public boolean isDisposedRefund(String outTradeNo) throws ServiceException {
+        try {
+            return null == record2map(Db.findFirst(REFUND_INFO, outTradeNo)) ? false : true;
+        } catch (Throwable t) {
+            logger.error("isDisposedRefund was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "暂未查询到对应的订单信息", t);
+        }
+    }
+
+    public Map<String, Object> getPayRequestInfo(String outTradeNo) throws ServiceException {
+        try {
+            return record2map(Db.findFirst(PAY_REQUEST_INFO, outTradeNo));
+        } catch (Throwable t) {
+            logger.error("getPayRequestInfo was error. exception = {}", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载数据失败", t);
+        }
     }
 }

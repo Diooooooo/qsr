@@ -8,6 +8,7 @@ import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.service.exception.ServiceException;
 import com.qsr.sdk.util.Env;
 import com.qsr.sdk.util.ErrorCode;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,35 @@ public class InternalController extends WebApiController {
         }
     }
 
+    public void getOddsSeason() {
+        try {
+            Fetcher f = this.fetch();
+            String pwd = f.s("manager");
+            if (Env.getManagementPassword().equals(pwd)) {
+                SeasonService seasonService = this.getService(SeasonService.class);
+                this.renderData(seasonService.getOddsSeasons());
+            } else {
+                throw new ApiException(ErrorCode.OAUTH2_ERROR, "没有权限，请联系管理员");
+            }
+        } catch (Throwable t) {
+            this.renderException("getOddsSeason", t);
+        }
+    }
+
+    public void getPlanSeason() {
+        try {
+            Fetcher f = this.fetch();
+            if (Env.getManagementPassword().equals(f.s("manager"))) {
+                SeasonService seasonService = this.getService(SeasonService.class);
+                this.renderData(seasonService.getPlanSeason());
+            } else {
+                throw new ApiException(ErrorCode.OAUTH2_ERROR, "没有权限，请联系管理员");
+            }
+        } catch (Throwable t) {
+            this.renderException("getPlanSeason", t);
+        }
+    }
+
     /**
      *
      */
@@ -60,9 +90,7 @@ public class InternalController extends WebApiController {
                 this.renderData();
             } else {
                 logger.error("batchCreateChatRoomWithTime was failed, real ip = {} ", getRealRemoteAddr());
-                Map<String, Object> info = new HashMap<>();
-                info.put("message", "没有权限，请联系管理员");
-                this.renderData(info);
+                throw new ApiException(ErrorCode.OAUTH2_ERROR, "没有权限，请联系管理员");
             }
         } catch (Throwable t) {
             this.renderException("batchCreateChatRoomWithTime", t);

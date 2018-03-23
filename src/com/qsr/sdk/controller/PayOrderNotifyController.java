@@ -6,6 +6,7 @@ import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.lang.Parameter;
 import com.qsr.sdk.service.PayOrderService;
 import com.qsr.sdk.util.*;
+import com.qsr.sdk.util.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +49,9 @@ public class PayOrderNotifyController extends WebApiController {
                         //校验签名
                         if (sign.equals(resSign)) {
                             //更改订单
+                            Map<String, Object> info = payOrderService.getPayRequestInfo(outTradeNo);
                             payOrderService.modifyPayOrderWithNotify(outTradeNo,
-                                    (Integer) providerInfo.get("provider_id"), resultCode, statusId, openid);
+                                    (Integer) providerInfo.get("provider_id"), resultCode, statusId, openid, (Integer) info.get("user_id"));
                         } else {
                             logger.error("有人试图篡改支付数据，已被系统拦截并记录。remote addr = {}, user agent = {}",
                                     this.getRealRemoteAddr(), this.getUserAgent());
@@ -76,40 +78,39 @@ public class PayOrderNotifyController extends WebApiController {
             if (StringUtil.NULL_STRING == res) {
                 throw new ApiException(ErrorCode.PARAMER_ILLEGAL, "参数不完整");
             }
-            logger.debug("payNotify response = {} ", res);
+            logger.debug("refund response = {} ", res);
             Map<String, String> resMap = getResponseMap(res);
             // 通讯结果
             if (SUCCESS.equals(resMap.get("return_code").toUpperCase())) {
                 Parameter p = new Parameter(resMap);
                 PayOrderService payOrderService = this.getService(PayOrderService.class);
                 String reqInfo = p.s("req_info");
-                String appId = p.s("appid");
-                String mchId = p.s("mch_id");
-                String outTradeNo = p.s("out_trade_no");
-                String resultCode = p.s("result_code").toUpperCase();
-                String resultMsg = p.s("result_msg", StringUtil.NULL_STRING);
+                Map<String, String> decodeMap = WeixinPayment.decodeRefund(reqInfo);
+                String resultCode = resMap.get("return_code");
+                String resultMsg = decodeMap.get("result_msg");
+                String outTradeNo = decodeMap.get("out_trade_no");
                 String provider = "Wxpay";
-                if (payOrderService.isDisposed(outTradeNo)) {
-                    payOrderService.saveNotifyRemote(outTradeNo, provider, resultCode, resultMsg, p.toString(), res);
+                if (payOrderService.isDisposedRefund(outTradeNo)) {
+                    payOrderService.saveRefundNotify(outTradeNo, provider, resultCode, resultMsg, p.toString(), res);
                     // 交易成功
                     if (SUCCESS.equals(resultCode)) {
-                        String sign = resMap.remove("sign");
+//                        String sign = resMap.remove("sign");
                         String openid = resMap.get("openid");
-                        String resSign = WeixinPayment.resSign(resMap);
-                        int statusId = 4;
+//                        String resSign = WeixinPayment.resSign(resMap);
                         Map<String, Object> providerInfo = payOrderService.getProviderInfo(provider);
-                        if (null == providerInfo) {
-                            throw new ApiException(ErrorCode.INTERNAL_EXCEPTION, "暂不支持的支付服务");
-                        }
+//                        if (null == providerInfo) {
+//                            throw new ApiException(ErrorCode.INTERNAL_EXCEPTION, "暂不支持的支付服务");
+//                        }
                         //校验签名
-                        if (sign.equals(resSign)) {
+//                        if (sign.equals(resSign)) {
                             //更改订单
-                            payOrderService.modifyPayOrderWithNotify(outTradeNo,
-                                    (Integer) providerInfo.get("provider_id"), resultCode, statusId, openid);
-                        } else {
-                            logger.error("有人试图篡改退款数据，已被系统拦截并记录。remote addr = {}, user agent = {}",
-                                    this.getRealRemoteAddr(), this.getUserAgent());
-                        }
+                            Map<String, Object> info = payOrderService.getPayRequestInfo(outTradeNo);
+                            payOrderService.refundNotify(outTradeNo, (Integer) providerInfo.get("provider_id"),
+                                    resultCode, openid, (Integer) info.get("user_id"));
+//                        } else {
+//                            logger.error("有人试图篡改退款数据，已被系统拦截并记录。remote addr = {}, user agent = {}",
+//                                    this.getRealRemoteAddr(), this.getUserAgent());
+//                        }
                     } else {
                         // 交易失败
                         String errCode = p.s("err_code");

@@ -26,4 +26,5 @@ public class BannerController extends WebApiController {
             this.renderException("home was erro. exception = {}", t);
         }
     }
+
 }

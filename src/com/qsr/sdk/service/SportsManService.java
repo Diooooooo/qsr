@@ -2,6 +2,7 @@ package com.qsr.sdk.service;
 
 import com.jfinal.plugin.activerecord.Db;
 import com.qsr.sdk.service.exception.ServiceException;
+import com.qsr.sdk.service.serviceproxy.annotation.CacheAdd;
 import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public class SportsManService extends Service {
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = s.sports_id AND ua.type_id = 2 AND ua.status_id = 1 AND ua.user_id = ? " +
             "  WHERE s.sports_id = ?";
 
+    @CacheAdd(timeout = 2 * 60 * 60)
     public List<Map<String, Object>> getSportsManByTeamId(int teamId, int userId) throws ServiceException {
         try {
             return record2list(Db.find(SELECT_SPORTSMAN_INFO + SPORTSMAN_TEAM, userId, teamId));
@@ -41,6 +43,7 @@ public class SportsManService extends Service {
         }
     }
 
+    @CacheAdd(timeout = 2 * 60 * 60)
     public Map<String,Object> getSportsmanInfo(int sportsId, int userId) throws ServiceException {
         try {
             return record2map(Db.findFirst(SELECT_SPORTSMAN_INFO + SPORTSMAN_INFO, userId, sportsId));

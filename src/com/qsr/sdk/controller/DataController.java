@@ -1,9 +1,11 @@
 package com.qsr.sdk.controller;
 
 import com.qsr.sdk.controller.fetcher.Fetcher;
+import com.qsr.sdk.lang.Parameter;
 import com.qsr.sdk.service.DataService;
 import com.qsr.sdk.service.LeagueService;
 import com.qsr.sdk.service.SeasonService;
+import com.qsr.sdk.service.realtimedata.ActivationData;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +70,30 @@ public class DataController extends WebApiController {
             this.renderData(SUCCESS);
         } catch (Throwable t) {
             this.renderException("getSeasonLotteryType", t);
+        }
+    }
+
+    public void getSeasonList() {
+        try {
+            Fetcher f = this.fetch();
+            int leagueId = f.i("league_id");
+            String year = f.s("year", String.valueOf(LocalDate.now().getYear()));
+            int gameweek = f.i("gameweek", 1);
+            DataService dataService = this.getService(DataService.class);
+            this.renderData(dataService.getSeasonList(leagueId, year, gameweek));
+        } catch (Throwable t) {
+            this.renderException("getSeasonList", t);
+        }
+    }
+
+    public void getGameweek() {
+        try {
+            Fetcher f = this.fetch();
+            int leagueId = f.i("league_id");
+            String year = f.s("year", String.valueOf(LocalDate.now().getYear()));
+            SeasonService seasonService = this.getService(SeasonService.class);
+        } catch (Throwable t) {
+            this.renderException("getGamewwek", t);
         }
     }
 

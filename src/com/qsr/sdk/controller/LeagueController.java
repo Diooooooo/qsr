@@ -51,7 +51,7 @@ public class LeagueController extends WebApiController {
         Map<String, Object> major = new HashMap<>();
         attetion.put("leagueName", "关注");
         attetion.put("leagueId", "-2");
-        all.put("leagueName", "全部");
+        all.put("leagueName", "足彩");
         all.put("leagueId", "-3");
         major.put("leagueName", "重要");
         major.put("leagueId", "0");

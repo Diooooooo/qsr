@@ -3,6 +3,7 @@ package com.qsr.sdk.service;
 import com.jfinal.plugin.activerecord.Db;
 import com.qsr.sdk.lang.Parameter;
 import com.qsr.sdk.service.exception.ServiceException;
+import com.qsr.sdk.service.serviceproxy.annotation.CacheAdd;
 import com.qsr.sdk.util.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,6 +59,7 @@ public class DataService extends Service {
         }
     }
 
+    @CacheAdd(timeout = 1 * 60 * 60)
     public List<Map<String,Object>> getSeasonItemWithSource(int leagueId, String year) throws ServiceException {
         try {
             return record2list(Db.find(SEASON_LIST_ITEM, leagueId, RANKING_GROUP_SOURCE, year));
@@ -82,6 +84,16 @@ public class DataService extends Service {
         } catch (Throwable t) {
             logger.error("getRankingType was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载排行类型失败", t);
+        }
+    }
+
+    public List<Map<String, Object>> getSeasonList(int leagueId, String year, int gameweek) throws ServiceException {
+        try {
+//            record2list(Db.find(SEASON_LIST_GAMEWEEK, leagueId, year, gameweek));
+            return null;
+        } catch (Throwable t) {
+            logger.error("getSeasonList was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛程失败", t);
         }
     }
 }

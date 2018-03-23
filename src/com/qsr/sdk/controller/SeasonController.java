@@ -4,10 +4,12 @@ import com.qsr.sdk.controller.fetcher.Fetcher;
 import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.lang.Parameter;
 import com.qsr.sdk.service.*;
+import com.qsr.sdk.util.Env;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -184,9 +186,82 @@ public class SeasonController extends WebApiController {
             logger.debug("getForceSeason params={}", f);
             SeasonService seasonService = this.getService(SeasonService.class);
             List<Map<String, Object>> forces = seasonService.getSeasonForce();
-            this.renderData(forces, SUCCESS);
+            List<Map<String, Object>> pics = new ArrayList<>();
+            if (null == forces || forces.size() <= 0) {
+                for (String s: Env.getPicForce().split("-")) {
+                    Map<String, Object> pic = new HashMap<>();
+                    pic.put("icon", s.split(",")[0]);
+                    pic.put("url", s.split(",")[1]);
+                    pics.add(pic);
+                }
+            } else {
+                Map<String, Object> pic = new HashMap<>();
+                pic.put("icon", "");
+                pic.put("url", "");
+                pics.add(pic);
+            }
+            Map<String, Object> info = new HashMap<>();
+            info.put("item", forces);
+            info.put("pic", pics);
+            this.renderData(info, SUCCESS);
         } catch (Throwable t) {
             this.renderException("getForceSeason", t);
+        }
+    }
+
+    public void getEntries() {
+        try {
+            Fetcher f = this.fetch();
+            int seasonId = f.i("season_id", 0);
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            Map<String, Object> info = esotericaService.getEsotericaInfoWithSeasonId(seasonId);
+            logger.debug("getEntries params = {} ", f);
+            List<Map<String, Object>> lm = new ArrayList<>();
+            Map<String, Object> live = new HashMap<>();
+            live.put("id", 1);
+            live.put("n", "直播君");
+            live.put("sorted", 1);
+            live.put("enabled", 1);
+            Map<String, Object> room = new HashMap<>();
+            room.put("id", 2);
+            room.put("n", "聊天室");
+            room.put("sorted", 2);
+            room.put("enabled", 1);
+            Map<String, Object> real = new HashMap<>();
+            real.put("id", 3);
+            real.put("n", "赛况");
+            real.put("sorted", 3);
+            real.put("enabled", 1);
+            Map<String, Object> plan = new HashMap<>();
+            plan.put("id", 4);
+            plan.put("n", "阵容");
+            plan.put("sorted", 4);
+            plan.put("enabled", 1);
+            Map<String, Object> esoterica = new HashMap<>();
+            esoterica.put("id", 5);
+            esoterica.put("n", "锦囊");
+            esoterica.put("sorted", 5);
+            esoterica.put("enabled", 1);
+            Map<String, Object> analysis = new HashMap<>();
+            analysis.put("id", 6);
+            analysis.put("n", "分析");
+            analysis.put("sorted", 6);
+            analysis.put("enabled", 1);
+            Map<String, Object> odds = new HashMap<>();
+            odds.put("id", 7);
+            odds.put("n", "赔率");
+            odds.put("sorted", 7);
+            odds.put("enabled", 1);
+            lm.add(room);
+            lm.add(real);
+            lm.add(plan);
+            if (null != info)
+                lm.add(esoterica);
+            lm.add(analysis);
+            lm.add(odds);
+            this.renderData(lm, SUCCESS);
+        } catch (Throwable t) {
+            this.renderException("getEntries", t);
         }
     }
 

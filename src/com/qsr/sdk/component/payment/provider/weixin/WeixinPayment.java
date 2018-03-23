@@ -2,13 +2,22 @@ package com.qsr.sdk.component.payment.provider.weixin;
 
 import com.qsr.sdk.component.payment.*;
 import com.qsr.sdk.component.payment.provider.AbstractPayment;
+import com.qsr.sdk.component.payment.provider.alipay.Base64;
 import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.exception.PaymentException;
 import com.qsr.sdk.lang.Parameter;
-import com.qsr.sdk.util.*;
+import com.qsr.sdk.util.Env;
+import com.qsr.sdk.util.ErrorCode;
+import com.qsr.sdk.util.Md5Util;
+import com.qsr.sdk.util.XmlUtil;
+import com.qsr.sdk.util.HttpUtil;
+import com.qsr.sdk.util.UrlUtil;
+import com.qsr.sdk.util.StringUtil;
+import com.qsr.sdk.util.AESUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
@@ -24,7 +33,6 @@ public class WeixinPayment extends AbstractPayment {
 	private static final String ORDER_URL = "https://api.mch.weixin.qq.com/pay/unifiedorder";
 	private static final String REFUND = "https://api.mch.weixin.qq.com/secapi/pay/refund";
 	private static final String REFUND_QUERY = "https://api.mch.weixin.qq.com/pay/refundquery";
-	private static final String REFUND_NOTIFY_URL = "http://liangqiujiang.com:8080/notify/refund";
 	private static final String RETURN_CODE_SUCCESS = "SUCCESS";
 	private static final String RETURN_CODE_FAIL = "FAIL";
 	private static Map<String, String> codes = new HashMap<String, String>();
@@ -196,7 +204,7 @@ public class WeixinPayment extends AbstractPayment {
         request.put("nonce_str", nonce_str);
         request.put("out_trade_no", req.get("out_trade_no"));
         request.put("out_refund_no", result.getOrderNumber());
-        request.put("notify_url", REFUND_NOTIFY_URL);
+        request.put("notify_url", Env.getRefundNotify());
         request.put("total_fee", fee);
         request.put("refund_fee", fee);
         String serializationRequest = Md5Util.concat(request, KEY);
@@ -205,7 +213,7 @@ public class WeixinPayment extends AbstractPayment {
         String content = XmlUtil.map2xml(request);
         String responseString;
         try {
-            responseString = HttpUtil.post(REFUND, content);
+            responseString = HttpUtil.post(REFUND, MCH_ID, new File(Env.getP12()), content);
         } catch (Throwable t) {
             logger.error("refund was error. exception = {}", t);
             throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN, "创建退款时出现网络错误");
@@ -213,36 +221,27 @@ public class WeixinPayment extends AbstractPayment {
         Map<String, String> response = XmlUtil.xml2map(responseString);
         String returnCode = response.get("return_code");
         String returnMsg = response.get("return_msg");
+        String resultCode = response.get("result_code");
+        String errMsg = response.get("err_code_des");
         if (!RETURN_CODE_SUCCESS.equals(returnCode)) {
             logger.error("create wxpay was error. the wxpay service is down");
             throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN,
                     "申请微信退款失败:" + returnCode + "," + returnMsg);
         }
-        String paymentCode = response.get("prepay_id");
-        result.setPaymentCode(paymentCode);
-        sign = response.remove("sign");
-        String sign2 = Md5Util.digest(Md5Util.concat(response, KEY)).toUpperCase();
-        if (!sign2.equals(sign)) {
-            logger.error("wxpay was error. the sign is not mime");
-            throw new PaymentException(ErrorCode.SIGN_ERROE, "微信数据签名错误");
+        if (RETURN_CODE_FAIL.equals(resultCode)) {
+            throw new PaymentException(ErrorCode.THIRD_SERVICE_EXCEPTIOIN, errMsg);
         }
 
-        String timestamp = String.valueOf(System.currentTimeMillis() / 1000);
-        Map<String, Object> res = new HashMap<>();
-        res.put("appid", APPID);
-        res.put("partnerid", MCH_ID);
-        res.put("prepayid", paymentCode);
-        res.put("package", "Sign=WXPay");
-        res.put("noncestr", nonce_str);
-        res.put("timestamp", timestamp);
-        String resSign = Md5Util.digest(Md5Util.concat(res, KEY), Env.getCharset()).toUpperCase();
         Map<String, String> conf = new HashMap<>();
-        conf.put("sign", resSign);
-        conf.put("body", serializationRequest);
-        conf.put("detail", content);
-        conf.put("nonce_str", nonce_str);
-        conf.put("timestamp", timestamp);
-        conf.put("prepay_id", paymentCode);
+        conf.put("out_trade_no", response.get("out_trade_no"));
+        conf.put("out_refund_no", response.get("out_refund_no"));
+        conf.put("refund_fee", response.get("refund_fee"));
+        conf.put("total_fee", response.get("total_fee"));
+        conf.put("cash_fee", response.get("cash_fee"));
+        conf.put("transaction_id", response.get("transaction_id"));
+        conf.put("refund_id", response.get("refund_id"));
+        conf.put("content", content);
+        conf.put("response", response.toString());
         result.setConf(conf);
         return result;
     }
@@ -306,6 +305,12 @@ public class WeixinPayment extends AbstractPayment {
 
     public static final String resSign(Map<?, ?> maps) {
 	    return Md5Util.digest(Md5Util.concat(maps, KEY), Env.getCharset()).toUpperCase();
+    }
+
+    public static final Map<String, String> decodeRefund(String param) throws Exception {
+	    byte[] info = Base64.decode(param);
+	    String key = Md5Util.digest(KEY.split("=")[1]).toLowerCase();
+	    return XmlUtil.xml2map(AESUtil.decryptData(info, key));
     }
 
     public static final boolean isMime(String appId, String mchId) {

@@ -21,6 +21,8 @@ import org.apache.http.util.EntityUtils;
 import javax.net.ssl.SSLContext;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -295,6 +297,42 @@ public class HttpUtil {
 		return httpclient;
 
 	}
+
+	private static CloseableHttpClient createHttpClient(String url, File f, String pwd) throws KeyStoreException {
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+	    CloseableHttpClient httpClient;
+	    if (url.startsWith("https://")) {
+	        try {
+	            keyStore.load(new FileInputStream(f), pwd.toCharArray());
+	            SSLContext sslContext = SSLContexts.custom().loadKeyMaterial(keyStore, pwd.toCharArray()).build();
+	            SSLConnectionSocketFactory sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, new String[] {
+	                    "TLSv1", "TLSv1.1", "TLSv1.2", "SSLv3"
+                }, null, SSLConnectionSocketFactory.getDefaultHostnameVerifier());
+	            httpClient = HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory).build();
+            } catch (Throwable t) {
+	            throw new RuntimeException(t);
+            }
+        } else {
+	        httpClient = HttpClients.createDefault();
+        }
+        return httpClient;
+    }
+
+    public static String post(String url, String pwd, File f, String data) throws KeyStoreException, IOException {
+	    CloseableHttpClient client = createHttpClient(url, f, pwd);
+	    HttpPost httpPost = new HttpPost(url);
+	    httpPost.setEntity(new StringEntity(data, "utf-8"));
+	    CloseableHttpResponse response = null;
+        try {
+            response = client.execute(httpPost);
+            return EntityUtils.toString(response.getEntity(), Env.getCharset());
+        } catch (IOException e) {
+            throw new IOException(e);
+        } finally {
+            response.close();
+            client.close();
+        }
+    }
 
 	public static String post(String url, String urlencoded, String charset,
 			int timeout) throws IOException {
