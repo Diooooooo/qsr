@@ -210,7 +210,7 @@ public class SeasonService extends Service {
             "AND ts.season_start_play_time > NOW() " +
             "ORDER BY ts.season_start_play_time ASC, ts.season_gameweek ASC LIMIT ?";
     private static final String SELECT_SEASON_ODDS_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 3 DAY AND NOW() + INTERVAL 90 MINUTE ";
+            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 90 MINUTE AND NOW() + INTERVAL 3 DAY";
     private static final String SELECT_SEASON_PLAN_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
             "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 1 HOUR AND NOW() + INTERVAL 90 MINUTE ";
     private static final String FORCES = "SELECT " +

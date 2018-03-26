@@ -30,6 +30,21 @@ public class LeagueService extends Service {
             "  c.country_code = IFNULL(i.code, c.country_code), c.country_icon = IFNULL(i.icon, c.country_icon), " +
             "  c.description = IFNULL(i.description, c.description) " +
             "  WHERE c.country_id = i.id";
+    private static final String LEAGUES_ALL = "SELECT l.lea_id, l.lea_name, l.lea_full_name, IFNULL(l.description, '') desc_, " +
+            "IFNULL(lc.continent_name, '') continent_name, IFNULL(c.country_name, '') country_name, " +
+            "l.enabled, l.deleted " +
+            "FROM qsr_league l " +
+            "LEFT JOIN qsr_league_country c ON l.country_id = c.country_id " +
+            "LEFT JOIN qsr_league_continent lc ON l.continent_id = lc.continent_id " +
+            "ORDER BY l.sorted DESC, l.enabled DESC";
+    private static final String MODIFY_LEAGUE = "UPDATE qsr_league l " +
+            "  INNER JOIN (SELECT ? AS n, ? AS f, ? AS de, ? AS cId, ? AS c_id, ? AS e, ? AS d, ? AS i) ql " +
+            "  LEFT JOIN qsr_league_continent lc ON ql.cId = lc.continent_id " +
+            "  LEFT JOIN qsr_league_country c ON ql.c_id = c.country_id " +
+            "  SET l.lea_name = IFNULL(ql.n, l.lea_name), l.lea_full_name = IFNULL(ql.f, l.lea_full_name), " +
+            "  l.description = IFNULL(ql.de, l.description), l.continent_id = IFNULL(lc.continent_id, l.continent_id), " +
+            "  l.country_id = IFNULL(c.country_id, l.country_id), l.enabled = IF(ql.e, TRUE, FALSE), l.deleted = IF(ql.d, TRUE, FALSE) " +
+            "  WHERE l.lea_id = ql.i";
 
     @CacheAdd(timeUnit = TimeUnit.HOURS, timeout = 2)
     public List<Map<String, Object>> getAllLeagues() throws ServiceException {
@@ -97,6 +112,25 @@ public class LeagueService extends Service {
         } catch (Throwable t) {
             logger.error("modifyCountry was error. exception = {}", t);
             throw new ServiceException(getServiceName(), ErrorCode.DATA_SAVA_FAILED, "修改国家信息失败", t);
+        }
+    }
+
+    public List<Map<String, Object>> getAllLeaguesForManager() throws ServiceException {
+        try {
+            return record2list(Db.find(LEAGUES_ALL));
+        } catch (Throwable t) {
+            logger.error("getAllLeaguesForManager was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛事类型失败", t);
+        }
+    }
+
+    public boolean modifyLeague(int leaId, String name, String full, String desc, int continentId, int countryId,
+                                boolean enabled, boolean deleted) throws ServiceException {
+        try {
+            return Db.update(MODIFY_LEAGUE, name, full, desc, continentId, countryId, enabled, deleted, leaId) > 0;
+        } catch (Throwable t) {
+            logger.error("modifyLeague was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.DATA_SAVA_FAILED, "修改赛事类型失败", t);
         }
     }
 }

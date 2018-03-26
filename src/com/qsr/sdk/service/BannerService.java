@@ -43,7 +43,7 @@ public class BannerService extends Service {
         }
     }
 
-    public boolean addBanner(String title, String url, String icon, String desc, int enabled, int deleted) throws ServiceException {
+    public boolean addBanner(String title, String url, String icon, String desc, boolean enabled, boolean deleted) throws ServiceException {
         try {
             return Db.update(BANNER_ADD, title, url, icon, desc, enabled, deleted) > 0;
         } catch (Throwable t) {

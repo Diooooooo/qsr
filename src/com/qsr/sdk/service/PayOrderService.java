@@ -3,6 +3,7 @@ package com.qsr.sdk.service;
 import com.jfinal.plugin.activerecord.Db;
 import com.qsr.sdk.component.payment.Payment;
 import com.qsr.sdk.component.payment.PaymentOrder;
+import com.qsr.sdk.component.payment.provider.weixin.WeixinPayment;
 import com.qsr.sdk.exception.PaymentException;
 import com.qsr.sdk.jfinal.DbUtil;
 import com.qsr.sdk.lang.PageList;
@@ -454,4 +455,5 @@ public class PayOrderService extends Service {
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载数据失败", t);
         }
     }
+
 }

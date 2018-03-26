@@ -26,6 +26,7 @@ public class LotteryService extends Service {
     private static final String SELECT_LOTTERY_ITEMS = "SELECT i.item_win, i.item_deuce, i.item_lose, " +
             "i.item_win_status, i.item_lose_status, DATE_FORMAT(i.createtime, '%m-%d %H:%i') change_time " +
             "FROM qsr_team_season_lottery_item i WHERE i.lottery_id = ? ORDER BY i.createtime ASC ";
+    private static final String SELECT_LOTTERY_AOMEN = "SELECT l.final_win, l.final_deuce, l.final_lose FROM qsr_team_season_lottery l WHERE l.season_id = ? AND l.type_id = 2";
 
     @CacheAdd(name = "lottery", timeout = 1, timeUnit = TimeUnit.MINUTES)
     public List<Map<String, Object>> getLotteries(int seasonId) throws ServiceException {
@@ -39,6 +40,15 @@ public class LotteryService extends Service {
         } catch (Throwable t) {
             logger.error("getLotteries was error. exception = {}", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "赔率加载失败", t);
+        }
+    }
+
+    public Map<String, Object> getLotteryAomen(int seasonId) throws ServiceException {
+        try {
+            return record2map(Db.findFirst(SELECT_LOTTERY_AOMEN, seasonId));
+        } catch (Throwable t) {
+            logger.error("getLotteryAomen was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赔率失败", t);
         }
     }
 }

@@ -3,24 +3,42 @@ package com.qsr.sdk.controller;
 import com.jfinal.upload.UploadFile;
 import com.qsr.sdk.component.filestorage.FileStorage;
 import com.qsr.sdk.controller.fetcher.Fetcher;
+import com.qsr.sdk.exception.ApiException;
 import com.qsr.sdk.service.*;
 import com.qsr.sdk.service.exception.ServiceException;
 import com.qsr.sdk.util.Env;
+import com.qsr.sdk.util.ErrorCode;
 import com.qsr.sdk.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ManagerController extends WebApiController {
     private final static Logger logger = LoggerFactory.getLogger(ManagerController.class);
     private static final List<String> icon = Arrays.asList("icon");
+    private static final String[] TYPES = {"Admin", "QSR"};
     public ManagerController() {
         super(logger);
+    }
+
+
+    public void login() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("login params = {} ", f);
+            String name = f.s("name");
+            String pwd = f.s("pwd");
+            String type = f.s("type", TYPES[1]);
+            UserService userService = this.getService(UserService.class);
+            String sk = userService.login(name, pwd, type);
+            Map<String, Object> info = new HashMap<>();
+            info.put("sessionkey", sk);
+            this.renderData(info);
+        } catch (Throwable t) {
+            this.renderException("login", t);
+        }
     }
 
     /**********轮播图************/
@@ -42,8 +60,8 @@ public class ManagerController extends WebApiController {
             String title = f.s("banner_title");
             String url = f.s("banner_url");
             String desc = f.s("description");
-            int enabled = f.i("enabled");
-            int deleted = f.i("deleted");
+            boolean enabled = f.b("enabled");
+            boolean deleted = f.b("deleted");
             List<UploadFile> tempFiles = f.getUploadFiles();
             List<UploadFile> files = new ArrayList<>();
             for (UploadFile uf: tempFiles) {
@@ -57,10 +75,31 @@ public class ManagerController extends WebApiController {
             int i = 0;
             uploadFiles(files, fss, fileIds, i, "banners");
             BannerService bannerService = this.getService(BannerService.class);
-            bannerService.addBanner(title, url, fss.getFileUrl(fileIds[0]), desc, enabled, deleted);
+//            bannerService.addBanner(title, url, fss.getFileUrl(fileIds[0]), desc, enabled, deleted);
+            bannerService.addBanner(title, url, null, desc, enabled, deleted);
             this.renderData();
         } catch (Throwable t) {
             this.renderException("addBanners was error. exception = {}", t);
+        }
+    }
+
+    public void uploadFiles() {
+        try {
+            Fetcher f = this.fetch();
+            String prex = f.s("prex", StringUtil.EMPTY_STRING);
+            List<UploadFile> temps = f.getUploadFiles();
+            List<UploadFile> ufs = new ArrayList<>();
+            for (UploadFile uf: temps) {
+                if (icon.contains(uf.getParameterName()))
+                    ufs.add(uf);
+            }
+            int[] fileIds = new int[ufs.size()];
+            int i = 0;
+            FileStorageService fss = this.getService(FileStorageService.class);
+//            uploadFiles(ufs, fss, fileIds, i, prex);
+            this.renderData(prex);
+        } catch (Throwable t) {
+            this.renderException("uploadFiles", t);
         }
     }
 
@@ -179,7 +218,9 @@ public class ManagerController extends WebApiController {
             String code = f.s("code", StringUtil.NULL_STRING);
             String desc = f.s("desc", StringUtil.NULL_STRING);
             LeagueService leagueService = this.getService(LeagueService.class);
-            leagueService.addCountry(name, en, code, desc, fss.getFileUrl(filelds[0]));
+//            leagueService.addCountry(name, en, code, desc, fss.getFileUrl(filelds[0]));
+            leagueService.addCountry(name, en, code, desc, "http://www.baidu.com/images/ddd.png");
+            this.renderData();
             this.renderData();
         } catch (Throwable t) {
             this.renderException("addCountry", t);
@@ -217,7 +258,8 @@ public class ManagerController extends WebApiController {
     /**************大洲**********/
     public void continents() {
         try {
-
+            Fetcher f = this.fetch();
+            logger.debug("continents params = {} ", f);
         } catch (Throwable t) {
             this.renderException("continents", t);
         }
@@ -242,7 +284,10 @@ public class ManagerController extends WebApiController {
     /********赛事类型**********/
     public void leagues() {
         try {
-
+            Fetcher f = this.fetch();
+            logger.debug("leagues params = {} ", f);
+            LeagueService leagueService = this.getService(LeagueService.class);
+            this.renderData(leagueService.getAllLeaguesForManager());
         } catch (Throwable t) {
             this.renderException("leagues", t);
         }
@@ -250,7 +295,22 @@ public class ManagerController extends WebApiController {
 
     public void modifyLeague() {
         try {
-
+            Fetcher f = this.fetch();
+            logger.debug("modifyLeague params = {}", f);
+            int leaId = f.i("lea_id");
+            String name = f.s("name", StringUtil.NULL_STRING);
+            String full = f.s("full", StringUtil.NULL_STRING);
+            String desc = f.s("desc", StringUtil.NULL_STRING);
+            int continentId = f.i("cId", 0);
+            int countryId = f.i("c_id", 0);
+            boolean enabled = f.b("enabled", true);
+            boolean deleted = f.b("deleted", false);
+            LeagueService leagueService = this.getService(LeagueService.class);
+            boolean successed = leagueService.modifyLeague(leaId, name, full, desc, continentId, countryId, enabled, deleted);
+            if (successed)
+                this.renderData();
+            else
+                throw new ApiException(ErrorCode.DATA_SAVA_FAILED, "修改赛事类型失败");
         } catch (Throwable t) {
             this.renderException("modifyLeagues", t);
         }
@@ -288,7 +348,10 @@ public class ManagerController extends WebApiController {
     /**********APP***************/
     public void apps() {
         try {
-
+            Fetcher f = this.fetch();
+            logger.debug("apps params = {} ", f);
+            UpdateService updateService = this.getService(UpdateService.class);
+            this.renderData(updateService.getAllUpdateHistory());
         } catch (Throwable t){
             this.renderException("apps", t);
         }

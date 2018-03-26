@@ -195,6 +195,17 @@ public class SeasonController extends WebApiController {
                     pics.add(pic);
                 }
             } else {
+                LotteryService lotteryService = this.getService(LotteryService.class);
+                for (Map<String, Object> m: forces) {
+                    Map<String, Object> os = lotteryService.getLotteryAomen((Integer) m.get("season_id"));
+                    if (null == os) {
+                        os = new HashMap<>();
+                        os.put("final_win", "");
+                        os.put("final_deuce", "");
+                        os.put("final_lose", "");
+                    }
+                    m.put("lottery", os);
+                }
                 Map<String, Object> pic = new HashMap<>();
                 pic.put("icon", "");
                 pic.put("url", "");
