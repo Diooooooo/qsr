@@ -43,7 +43,7 @@ public class UserController extends WebApiController {
 	            throw new ApiException(ErrorCode.USER_ALREADY_EXIST, "已注册的手机号");
             }
 			MessageService messageService = this.getService(MessageService.class);
-			messageService.registerUser(Md5Util.digest(mobile + System.currentTimeMillis()), Md5Util.digest(mobile), StringUtil.NULL_STRING, nickName);
+			messageService.registerUser(Md5Util.digest(mobile), Md5Util.digest(mobile), StringUtil.NULL_STRING, nickName);
 	        userService.register(mobile, nickName, password, confirm, userType, ip);
 	        this.renderData(SUCCESS);
         } catch (Throwable e) {

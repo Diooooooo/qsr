@@ -180,6 +180,7 @@ public class ManagerController extends WebApiController {
             String desc = f.s("desc", StringUtil.NULL_STRING);
             SeasonService seasonService = this.getService(SeasonService.class);
             seasonService.addForces(seasonId, desc);
+            this.renderData();
         } catch (Throwable t) {
             this.renderException("addForces", t);
         }

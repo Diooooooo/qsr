@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 public class NewsService extends Service {
     private static final Logger logger = LoggerFactory.getLogger(NewsService.class);
@@ -52,7 +53,7 @@ public class NewsService extends Service {
             "  s.enabled = IFNULL(i.enabled, s.enabled), s.description = IFNULL(i.description, s.description) " +
             "  WHERE s.news_id = i.news_id";
 
-    @CacheAdd(timeout = 30)
+    @CacheAdd(timeout = 1, timeUnit = TimeUnit.MINUTES)
     public PageList<Map<String,Object>> getNews(int pageNumber, int pageSize) throws ServiceException {
         try {
             return page2PageList(DbUtil.paginate(pageNumber, pageSize, SELECT_NEWS, FROM_NEWS));
