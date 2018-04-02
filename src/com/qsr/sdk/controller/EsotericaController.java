@@ -106,6 +106,22 @@ public class EsotericaController extends WebApiController {
         }
     }
 
+    public void getEsotericaWithSeasonId() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("getEsotericaWithSeasonId params = {} ", f);
+            String seasonId = f.s("season_id");
+            EsotericaService esotericaService = this.getService(EsotericaService.class);
+            Map<String, Object> info = esotericaService.getEsotericaWithSeasonId(seasonId);
+            if (null == info) {
+                throw new ApiException(ErrorCode.NOT_FOUND_SPEC_DATA, "客官来早了，暂无此场次锦囊信息");
+            }
+            this.renderData(info);
+        } catch (Throwable t) {
+            this.renderException("getEsotericaWithSeasonId", t);
+        }
+    }
+
     public void home() {
         try {
             Fetcher f = this.fetch();

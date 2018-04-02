@@ -28,7 +28,6 @@ public class EventService extends Service {
             "WHERE t.season_id = ? " +
             "ORDER BY t.start_time DESC";
 
-    @CacheAdd(name = "events", timeout = 1, timeUnit = TimeUnit.MINUTES, capacity = 5000)
     public List<Map<String, Object>> getEvents(int seasonId) throws ServiceException {
         try {
             return record2list(Db.find(SELECT_EVENTS, seasonId));

@@ -53,7 +53,7 @@ public class NewsService extends Service {
             "  s.enabled = IFNULL(i.enabled, s.enabled), s.description = IFNULL(i.description, s.description) " +
             "  WHERE s.news_id = i.news_id";
 
-    @CacheAdd(timeout = 1, timeUnit = TimeUnit.MINUTES)
+    @CacheAdd(capacity = 100, timeout = 1, timeUnit = TimeUnit.MINUTES)
     public PageList<Map<String,Object>> getNews(int pageNumber, int pageSize) throws ServiceException {
         try {
             return page2PageList(DbUtil.paginate(pageNumber, pageSize, SELECT_NEWS, FROM_NEWS));

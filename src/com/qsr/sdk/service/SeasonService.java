@@ -5,6 +5,7 @@ import com.qsr.sdk.jfinal.DbUtil;
 import com.qsr.sdk.lang.PageList;
 import com.qsr.sdk.service.exception.ServiceException;
 import com.qsr.sdk.service.serviceproxy.annotation.CacheAdd;
+import com.qsr.sdk.util.Env;
 import com.qsr.sdk.util.ErrorCode;
 import org.omg.PortableServer.THREAD_POLICY_ID;
 import org.slf4j.Logger;
@@ -44,7 +45,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
             "  LEFT JOIN qsr_team_season_type t ON t.type_id = ts.type_id " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id  AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
-            "  WHERE ts.lea_id IN (7, 19, 31, 42, 63) " +
+            "  WHERE ts.lea_id IN ("+Env.getFilterLeague()+") " +
             "  AND ts.season_start_play_time >= NOW() - INTERVAL 1 DAY " +
             "  ORDER BY ts.season_start_play_time ASC, ts.season_year ASC, ts.season_gameweek ASC";
     private final static String FROM_SEASON_BY_LEAGUE_ID = "FROM qsr_team_season ts " +
@@ -84,7 +85,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team_season_status tss ON tss.status_id = ts.status_id " +
             "  LEFT JOIN qsr_team_season_type t ON t.type_id = ts.type_id " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
-            "  WHERE ts.lea_id IN (7, 19, 31, 42, 63) " +
+            "  WHERE ts.lea_id IN ("+ Env.getFilterLeague()+") " +
             "  AND ts.season_start_play_time < NOW() - INTERVAL 1 DAY " +
             "  ORDER BY ts.season_year DESC, ts.season_start_play_time ASC, ts.season_gameweek DESC";
     private final static String FROM_SEASON_BY_LEAGUE_ID_PREV = "FROM qsr_team_season ts " +
@@ -210,9 +211,9 @@ public class SeasonService extends Service {
             "AND ts.season_start_play_time > NOW() " +
             "ORDER BY ts.season_start_play_time ASC, ts.season_gameweek ASC LIMIT ?";
     private static final String SELECT_SEASON_ODDS_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 90 MINUTE AND NOW() + INTERVAL 3 DAY";
+            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 3 DAY AND NOW() + INTERVAL 90 MINUTE ";
     private static final String SELECT_SEASON_PLAN_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 1 HOUR AND NOW() + INTERVAL 90 MINUTE ";
+            "WHERE s.season_start_play_time > NOW() + INTERVAL 120 MINUTE ";
     private static final String FORCES = "SELECT " +
             "  f.force_id, l.lea_name, a.team_name a_name, b.team_name b_name, s.season_start_play_time play_time, " +
             "  IF(t.type_name ='联赛赛程', '', t.type_name) type_name, " +

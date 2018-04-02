@@ -62,6 +62,8 @@ public class Env {
     private static String PAY_NOTIFY;
     private static String REFUND_NOTIFY;
     private static String PIC_FORCE;
+    private static String FILTER_LEAGUE;
+    private static String FILTER_LOTTERY;
 
     public static String[] getRealIpHeaders() {
         if (real_ip_headers == null) {
@@ -380,5 +382,17 @@ public class Env {
         if (null == PIC_FORCE)
             PIC_FORCE = parameter.s("pic_force");
         return PIC_FORCE;
+    }
+
+    public static String getFilterLeague() {
+        if (null == FILTER_LEAGUE)
+            FILTER_LEAGUE = parameter.s("filter_league");
+        return FILTER_LEAGUE;
+    }
+
+    public static String getFilterLottery() {
+        if (null == FILTER_LOTTERY)
+            FILTER_LOTTERY = parameter.s("filter_lottery");
+        return FILTER_LOTTERY;
     }
 }

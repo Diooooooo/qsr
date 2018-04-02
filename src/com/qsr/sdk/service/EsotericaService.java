@@ -52,7 +52,7 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_clientui_entry cu ON e.esoterica_author = cu.user_id " +
             "  LEFT JOIN qsr_team_season_esoterica_item i ON i.esoterica_id = e.esoterica_id " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = e.esoterica_id AND ua.status_id = 1 AND ua.type_id = 1 AND ua.user_id = ? " +
-            "  WHERE e.enabled = 1 AND e.status_id = 1 " +
+            "  WHERE e.enabled = 1 " +
             "  GROUP BY i.esoterica_id " +
             "  HAVING COUNT(i.esoterica_id) = ? " +
             "  ORDER BY e.stick DESC, e.createtime DESC";
@@ -266,6 +266,12 @@ public class EsotericaService extends Service {
             "  INNER JOIN qsr_team a ON s.season_team_a = a.team_id " +
             "  INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +
             " WHERE i.esoterica_id = ? ";
+    private static final String ESOTERICA_WITH_SEASON_ID_V2 = "SELECT e.esoterica_no FROM qsr_team_season_esoterica e " +
+            "INNER JOIN qsr_team_season_esoterica_item i ON e.esoterica_id = i.esoterica_id " +
+            "WHERE i.season_id = ? " +
+            "GROUP BY i.esoterica_id " +
+            "HAVING COUNT(i.esoterica_id) = 1 " +
+            "ORDER BY e.esoterica_date DESC, e.esoterica_author ASC";
 
     public PageList<Map<String, Object>> getEsotericaListByLeagueId(int pageNumber, int pageSize, int leagueId, int userId)
             throws ServiceException {
@@ -597,6 +603,15 @@ public class EsotericaService extends Service {
         } catch (Throwable t) {
             logger.error("getEsotericaSeasonItem was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛程失败", t);
+        }
+    }
+
+    public Map<String,Object> getEsotericaWithSeasonId(String seasonId) throws ServiceException {
+        try {
+            return record2map(Db.findFirst(ESOTERICA_WITH_SEASON_ID_V2, seasonId));
+        } catch (Throwable t) {
+            logger.error("getEsotericaWithSeasonId was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "查询锦囊失败", t);
         }
     }
 }

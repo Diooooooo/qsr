@@ -22,7 +22,6 @@ public class PlanService extends Service {
             "  WHERE p.season_id = ? " +
             "ORDER BY i.createdate ASC";
 
-    @CacheAdd(name = "plans", timeout = 5, timeUnit = TimeUnit.MINUTES)
     public List<Map<String, Object>> getPlans(int seasonId) throws ServiceException {
         try {
             return record2list(Db.find(SELECT_PLAN, seasonId));
