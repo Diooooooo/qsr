@@ -11,8 +11,8 @@ import java.util.Map;
 
 public class TechniqueService extends Service {
     private static final Logger logger = LoggerFactory.getLogger(TechniqueService.class);
-    private static final String SELECT_TECHNIQUE = "SELECT t.type_name, t.type_id, st.score_a, a.team_id team_a, " +
-            "b.team_id team_b, st.score_b, a.team_name team_name_a, b.team_name team_name_b " +
+    private static final String SELECT_TECHNIQUE = "SELECT t.type_name, t.type_id, CAST(IF(locate('%', st.score_a) > 0, substring(st.score_a, 1, LENGTH(st.score_a) - 1), st.score_a) AS DECIMAL) score_a, a.team_id team_a, " +
+            "b.team_id team_b, CAST(IF(locate('%', st.score_b) > 0, substring(st.score_b, 1, LENGTH(st.score_b) - 1), st.score_b) AS DECIMAL) score_b, a.team_name team_name_a, b.team_name team_name_b " +
             "FROM qsr_team_season_technique_type t " +
             "LEFT JOIN qsr_team_season_technique st ON st.type_id = t.type_id " +
             "LEFT JOIN qsr_team a ON a.team_id = st.team_a " +

@@ -140,7 +140,7 @@ public class EsotericaService extends Service {
             "WHERE e.esoterica_no = ? ORDER BY s.season_start_play_time ASC LIMIT ? ";
     private static final int LIMIT = 10;
     private static final String ESOTERICA_STAR_CONTINUE = "SELECT " +
-            "COUNT(CASE WHEN e.status_id = 2 THEN e.status_id END) star, " +
+            "COUNT(CASE WHEN e.status_id = 2 THEN e.status_id END) + 7 star, " +
             "COUNT(CASE WHEN e.status_id = 3 THEN e.status_id END) _continue FROM qsr_team_season_esoterica e " +
             "WHERE e.esoterica_author = ? AND e.status_id IN (2, 3) " +
             "LIMIT ?";

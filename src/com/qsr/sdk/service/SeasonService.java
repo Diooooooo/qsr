@@ -124,7 +124,9 @@ public class SeasonService extends Service {
             "  LEFT JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
             "  LEFT JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
-            "WHERE ts.season_team_a = ? AND ts.season_team_b = ? " +
+            "WHERE " +
+//            "ts.season_start_play_time < NOW() AND " +
+            "(ts.season_team_a = ? AND ts.season_team_b = ?) OR (ts.season_team_a = ? AND ts.season_team_b = ?) " +
 //            "AND YEAR(ts.season_year) = YEAR(NOW()) " +
             "ORDER BY ts.season_year DESC, ts.season_gameweek DESC LIMIT ?";
     private final static String TEAM_SEASON_HISTORY = "FROM qsr_team_season ts " +
@@ -135,7 +137,7 @@ public class SeasonService extends Service {
             "  LEFT JOIN qsr_team tb ON tb.team_id = ts.season_team_b " +
             "  LEFT JOIN qsr_users_attention ua ON ua.target_id = ts.season_id AND ua.type_id = 1 AND ua.status_id = 1 AND ua.user_id = ? " +
             "WHERE ts.status_id = 4 AND (ts.season_team_a = ? OR ts.season_team_b = ?) " +
-            "AND ts.season_start_play_time < NOW() - INTERVAL 1 DAY  " +
+            "AND ts.season_start_play_time < NOW() " +
             "ORDER BY ts.season_year DESC, ts.season_gameweek DESC LIMIT ?";
     private static final String TEAM_SEASON_HISTORY_YEAR = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id AND l.enabled = 1 " +
@@ -163,7 +165,7 @@ public class SeasonService extends Service {
             "ORDER BY f.createtime DESC " +
             "LIMIT 5";
     private static final String SELECT_SEASON_PLAYING_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 90 MINUTE";
+            "WHERE s.status_id in (1, 3, 5, 6) AND s.season_start_play_time BETWEEN NOW() - INTERVAL 90 MINUTE AND NOW() + INTERVAL 90 MINUTE";
     private static final String FROM_SEASON_ALL = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id AND l.enabled = 1 " +
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
@@ -399,7 +401,7 @@ public class SeasonService extends Service {
         try {
             List<Map<String, Object>> rel;
             if (0 != teamB) {
-                rel = record2list(Db.find(SELECT_SEASON_HISTOR + TEAM_SEASON_HISTORY_WITH_VS, userId, teamA, teamB, limit));
+                rel = record2list(Db.find(SELECT_SEASON_HISTOR + TEAM_SEASON_HISTORY_WITH_VS, userId, teamA, teamB, teamB, teamA, limit));
             } else {
                 rel = record2list(Db.find(SELECT_SEASON_HISTOR + TEAM_SEASON_HISTORY, userId, teamA, teamA, limit));
             }

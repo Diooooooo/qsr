@@ -17,7 +17,7 @@
 	</filter>
 	<filter-mapping>
 		<filter-name>DruidWebStatFilter</filter-name>
-		<url-pattern>*</url-pattern>
+		<url-pattern>/*</url-pattern>
 	</filter-mapping>
 
 	<servlet>
@@ -25,10 +25,20 @@
 		<servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
 		<init-param>
 			<param-name>allow</param-name>
-			<param-value>120.131.74.54</param-value>
+			<param-value>192.168.1.127</param-value>
 		</init-param>
+        <init-param>
+            <!-- 用户名 -->
+            <param-name>loginUsername</param-name>
+            <param-value>druid</param-value>
+        </init-param>
+        <init-param>
+            <!-- 密码 -->
+            <param-name>loginPassword</param-name>
+            <param-value>druid</param-value>
+        </init-param>
 
-	</servlet>
+    </servlet>
 	<servlet-mapping>
 		<servlet-name>DruidStatView</servlet-name>
 		<url-pattern>/druid/*</url-pattern>
