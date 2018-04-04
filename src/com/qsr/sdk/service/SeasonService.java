@@ -165,7 +165,7 @@ public class SeasonService extends Service {
             "ORDER BY f.createtime DESC " +
             "LIMIT 5";
     private static final String SELECT_SEASON_PLAYING_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.status_id in (1, 3, 5, 6) AND s.season_start_play_time BETWEEN NOW() - INTERVAL 90 MINUTE AND NOW() + INTERVAL 90 MINUTE";
+            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 90 MINUTE AND NOW() + INTERVAL 90 MINUTE  ";
     private static final String FROM_SEASON_ALL = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id AND l.enabled = 1 " +
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
@@ -213,7 +213,7 @@ public class SeasonService extends Service {
             "AND ts.season_start_play_time > NOW() " +
             "ORDER BY ts.season_start_play_time ASC, ts.season_gameweek ASC LIMIT ?";
     private static final String SELECT_SEASON_ODDS_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 3 DAY AND NOW() + INTERVAL 90 MINUTE ";
+            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 1 DAY AND NOW() + INTERVAL 90 MINUTE ";
     private static final String SELECT_SEASON_PLAN_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
             "WHERE s.season_start_play_time > NOW() + INTERVAL 120 MINUTE ";
     private static final String FORCES = "SELECT " +
@@ -242,6 +242,8 @@ public class SeasonService extends Service {
             "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 10 DAY " +
             "  AND s.status_id IN (1, 5, 6) " +
             "  ORDER BY s.season_start_play_time ASC";
+    private static final String SEASON_FUTURE = "SELECT s.season_fid FROM qsr_team_season s " +
+            "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 3 DAY ORDER BY s.season_start_play_time ASC ";
 
     /**
      * 根据联赛Id获取赛程
@@ -453,7 +455,6 @@ public class SeasonService extends Service {
         }
     }
 
-    @CacheAdd(name = "playing", timeout = 2, timeUnit = TimeUnit.MINUTES)
     public List<Map<String, Object>> getPlayingSeasons() throws ServiceException {
         try {
             return record2list(Db.find(SELECT_SEASON_PLAYING_SEASON));
@@ -530,6 +531,15 @@ public class SeasonService extends Service {
     public List<Map<String,Object>> getSeasonList() throws ServiceException {
         try {
             return record2list(Db.find(SEASONS_LIST));
+        } catch (Throwable t) {
+            logger.error("getSeasonList was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛事列表失败", t);
+        }
+    }
+
+    public List<Map<String, Object>> getFutureSeason() throws ServiceException {
+        try {
+            return record2list(Db.find(SEASON_FUTURE));
         } catch (Throwable t) {
             logger.error("getSeasonList was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛事列表失败", t);

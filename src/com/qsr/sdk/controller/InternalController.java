@@ -41,6 +41,21 @@ public class InternalController extends WebApiController {
         }
     }
 
+    public void getFutureSeason() {
+        try {
+            Fetcher f = this.fetch();
+            String pwd = f.s("manager");
+            if (Env.getManagementPassword().equalsIgnoreCase(pwd)) {
+                SeasonService seasonService = this.getService(SeasonService.class);
+                this.renderData(seasonService.getFutureSeason());
+            } else {
+                throw new ApiException(ErrorCode.OAUTH2_ERROR, "没有权限，请联系系统管理员");
+            }
+        } catch (Throwable t) {
+            this.renderException("getFutureSeason", t);
+        }
+    }
+
     public void getOddsSeason() {
         try {
             Fetcher f = this.fetch();

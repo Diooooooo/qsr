@@ -20,8 +20,8 @@ public class MessageService extends Service {
             "            FROM qsr_team_season s  " +
             "            INNER JOIN qsr_team a ON s.season_team_a = a.team_id " +
             "            INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +
-            "            WHERE s.status_id = 1 " +
-            "            AND DATE_FORMAT(s.season_start_play_time, '%H-%i') > DATE_FORMAT(NOW(), '%H-%i') + INTERVAL 60 MINUTE " +
+            "            WHERE s.status_id IN(1, 3, 5, 6) " +
+            "            AND s.season_start_play_time > NOW() AND s.season_start_play_time < NOW() + INTERVAL 60 MINUTE " +
             "            AND (s.chatroom_id = 0 OR s.self_chatroom_id = 0)";
     private static final String MODIFY_CHATROOM = "UPDATE qsr_team_season s SET s.chatroom_id = ? WHERE s.season_id = ?";
     private static final String MODIFY_SELF_CHATROOM = "UPDATE qsr_team_season s SET s.self_chatroom_id = ? WHERE s.season_id = ?";
@@ -29,7 +29,7 @@ public class MessageService extends Service {
     private static final String SELECT_DELETE_ROOMS = "SELECT s.season_id, s.self_chatroom_id, s.chatroom_id " +
             "            FROM qsr_team_season s " +
             "            WHERE s.status_id = 4 " +
-            "            AND DATE_FORMAT(s.season_start_play_time, '%H-%i') <= DATE_FORMAT(NOW(), '%H-%i') " +
+            "            AND s.season_start_play_time < NOW() " +
             "            AND (s.chatroom_id != 0 OR s.self_chatroom_id != 0) AND (s.chatroom_id != -1 OR s.self_chatroom_id != -1)";
 
     @Deprecated

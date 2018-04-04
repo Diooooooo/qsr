@@ -29,6 +29,16 @@ public class RankingController extends WebApiController {
         }
     }
 
+    public void getSeasonListWithTeam() {
+        try {
+            Fetcher f = this.fetch();
+            int seasonId = f.i("seasonId");
+            this.renderData();
+        } catch (Throwable t) {
+            this.renderException("getSeasonRanking", t);
+        }
+    }
+
     public void getRankingTypeList() {
         try {
             Fetcher f = this.fetch();
