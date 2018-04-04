@@ -41,6 +41,21 @@ public class InternalController extends WebApiController {
         }
     }
 
+    public void getOldSeason() {
+        try {
+            Fetcher f = this.fetch();
+            String pwd=  f.s("manager");
+            if (Env.getManagementPassword().equals(pwd)){
+                SeasonService seasonService = this.getService(SeasonService.class);
+                this.renderData(seasonService.getOldSeasons());
+            } else {
+                throw new ApiException(ErrorCode.OAUTH2_ERROR, "未有调用此接口的权限，请联系管理员");
+            }
+        } catch (Throwable t){
+            this.renderException("getOldSeason", t);
+        }
+    }
+
     public void getFutureSeason() {
         try {
             Fetcher f = this.fetch();

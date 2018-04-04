@@ -244,6 +244,7 @@ public class SeasonService extends Service {
             "  ORDER BY s.season_start_play_time ASC";
     private static final String SEASON_FUTURE = "SELECT s.season_fid FROM qsr_team_season s " +
             "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 3 DAY ORDER BY s.season_start_play_time ASC ";
+    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s WHERE s.season_start_play_time < NOW() AND s.status_id = 1 ";
 
     /**
      * 根据联赛Id获取赛程
@@ -540,6 +541,15 @@ public class SeasonService extends Service {
     public List<Map<String, Object>> getFutureSeason() throws ServiceException {
         try {
             return record2list(Db.find(SEASON_FUTURE));
+        } catch (Throwable t) {
+            logger.error("getSeasonList was error. exception = {} ", t);
+            throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛事列表失败", t);
+        }
+    }
+
+    public List<Map<String, Object>> getOldSeasons() throws ServiceException {
+        try {
+            return record2list(Db.find(SEASON_OLD));
         } catch (Throwable t) {
             logger.error("getSeasonList was error. exception = {} ", t);
             throw new ServiceException(getServiceName(), ErrorCode.LOAD_FAILED_FROM_DATABASE, "加载赛事列表失败", t);
