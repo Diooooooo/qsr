@@ -19,7 +19,7 @@ public class EventService extends Service {
             "IFNULL(ts.sports_name, t.sportsman_name_in) name_in, " +
             "IFNULL(tsb.sports_name, IFNULL(t.sportsman_name_out, '')) name_out " +
             "FROM qsr_team_season_event_type et " +
-            "LEFT JOIN qsr_team_season_event t ON et.type_id = t.type_id " +
+            "INNER JOIN qsr_team_season_event t ON et.type_id = t.type_id " +
             "LEFT JOIN qsr_team_season s ON s.season_id = t.season_id " +
             "LEFT JOIN qsr_team a ON a.team_id = s.season_team_a " +
             "LEFT JOIN qsr_team b ON b.team_id = s.season_team_b " +

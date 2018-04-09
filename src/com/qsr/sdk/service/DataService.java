@@ -19,7 +19,7 @@ public class DataService extends Service {
     private final static String FROM_LIST = "";
     private final static String FROM_INFO = "";
     private final static String DATA_GROUP = "SELECT g.group_id, g.group_name FROM qsr_team_season_lottery_group g WHERE g.enabled = 1;";
-    private final static String SEASON_LIST = "SELECT CONCAT(YEAR(li.league_year), '/', SUBSTRING(DATE_FORMAT(li.league_year, '%Y') + 1, 3)) season, YEAR(li.league_year) now_year " +
+    private final static String SEASON_LIST = "SELECT CONCAT(YEAR(li.league_year) - 1, '/', SUBSTRING(DATE_FORMAT(li.league_year, '%Y'), 3)) season, YEAR(li.league_year) - 1 now_year " +
             "  FROM qsr_team_season_ranking_list_item li " +
             "  INNER JOIN qsr_league l ON l.lea_id = li.league_id AND l.enabled = 1 " +
             "  INNER JOIN qsr_team t ON t.team_id = li.team_id " +

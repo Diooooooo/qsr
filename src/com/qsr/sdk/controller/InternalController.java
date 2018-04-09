@@ -8,11 +8,9 @@ import com.qsr.sdk.service.UserService;
 import com.qsr.sdk.service.exception.ServiceException;
 import com.qsr.sdk.util.Env;
 import com.qsr.sdk.util.ErrorCode;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -86,6 +84,9 @@ public class InternalController extends WebApiController {
         }
     }
 
+    /**
+     * 阵型
+     */
     public void getPlanSeason() {
         try {
             Fetcher f = this.fetch();

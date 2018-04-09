@@ -36,6 +36,7 @@ public class LeagueService extends Service {
             "FROM qsr_league l " +
             "LEFT JOIN qsr_league_country c ON l.country_id = c.country_id " +
             "LEFT JOIN qsr_league_continent lc ON l.continent_id = lc.continent_id " +
+            "WHERE l.enabled = 1 " +
             "ORDER BY l.sorted DESC, l.enabled DESC";
     private static final String MODIFY_LEAGUE = "UPDATE qsr_league l " +
             "  INNER JOIN (SELECT ? AS n, ? AS f, ? AS de, ? AS cId, ? AS c_id, ? AS e, ? AS d, ? AS i) ql " +

@@ -19,7 +19,7 @@ public class BannerService extends Service {
             "IFNULL(b.banner_url, '') url  FROM qsr_banner b WHERE b.enabled = 1 AND b.deleted = 0";
     private static final String BANNER_MODIFY = "UPDATE qsr_banner b SET b.banner_title = ?, b.banner_url = ?, b.banner_icon = ?, b.description = ?, b.enabled = ?, b.deleted = ? WHERE b.banner_id = ?";
     private static final String BANNER_ALL = "SELECT b.banner_id, b.banner_title, b.banner_url, b.banner_icon, b.description, " +
-            "b.enabled, b.deleted FROM qsr_banner b ORDER BY b.enabled DESC, b.updatetime DESC";
+            "b.enabled, b.deleted FROM qsr_banner b WHERE b.enabled = 1 ORDER BY b.enabled DESC, b.updatetime DESC";
     private static final String BANNER_ADD = "INSERT INTO qsr_banner(banner_title, banner_url, banner_icon, " +
             "description, enabled, deleted) VALUES (?, ?, ?, ?, ?, ?)";
     private static final String DEL_BANNER = "UPDATE qsr_banner b SET b.deleted = 1 , b.enabled = 0 WHERE b.banner_id = ? ";

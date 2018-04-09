@@ -165,7 +165,8 @@ public class SeasonService extends Service {
             "ORDER BY f.createtime DESC " +
             "LIMIT 5";
     private static final String SELECT_SEASON_PLAYING_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 90 MINUTE AND NOW() + INTERVAL 90 MINUTE  ";
+            "  WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 105 MINUTE AND NOW() " +
+            "  AND s.season_year = DATE(NOW())";
     private static final String FROM_SEASON_ALL = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id AND l.enabled = 1 " +
             "  INNER JOIN qsr_team ta ON ta.team_id = ts.season_team_a " +
@@ -213,7 +214,7 @@ public class SeasonService extends Service {
             "AND ts.season_start_play_time > NOW() " +
             "ORDER BY ts.season_start_play_time ASC, ts.season_gameweek ASC LIMIT ?";
     private static final String SELECT_SEASON_ODDS_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 1 DAY AND NOW() + INTERVAL 90 MINUTE ";
+            "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 105 MINUTE ";
     private static final String SELECT_SEASON_PLAN_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
             "WHERE s.season_start_play_time > NOW() + INTERVAL 120 MINUTE ";
     private static final String FORCES = "SELECT " +
@@ -226,6 +227,7 @@ public class SeasonService extends Service {
             "  INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +
             "  INNER JOIN qsr_league l ON s.lea_id = l.lea_id " +
             "  INNER JOIN qsr_team_season_type t ON s.type_id = t.type_id " +
+            "  WHERE f.enabled = 1 " +
             "  ORDER BY f.enabled DESC, f.createtime DESC";
     private static final String MODIFY_FORCE = "UPDATE qsr_team_season_force f " +
             "INNER JOIN qsr_team_season s ON f.season_id = s.season_id " +
@@ -244,7 +246,8 @@ public class SeasonService extends Service {
             "  ORDER BY s.season_start_play_time ASC";
     private static final String SEASON_FUTURE = "SELECT s.season_fid FROM qsr_team_season s " +
             "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 3 DAY ORDER BY s.season_start_play_time ASC ";
-    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s WHERE s.season_start_play_time < NOW() AND s.status_id = 1 ";
+    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s WHERE s.season_year = DATE(NOW()) " +
+            "AND s.season_start_play_time < NOW() - INTERVAL 105 MINUTE AND s.status_id = 3";
 
     /**
      * 根据联赛Id获取赛程

@@ -28,7 +28,7 @@ public class MessageService extends Service {
     private static final String DELETE_CHATROOM = "UPDATE qsr_team_season s SET s.self_chatroom_id = -1, s.chatroom_id = -1 WHERE s.season_id = ?";
     private static final String SELECT_DELETE_ROOMS = "SELECT s.season_id, s.self_chatroom_id, s.chatroom_id " +
             "            FROM qsr_team_season s " +
-            "            WHERE s.status_id = 4 " +
+            "            WHERE s.status_id = 3 " +
             "            AND s.season_start_play_time < NOW() " +
             "            AND (s.chatroom_id != 0 OR s.self_chatroom_id != 0) AND (s.chatroom_id != -1 OR s.self_chatroom_id != -1)";
 

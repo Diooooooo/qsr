@@ -1,9 +1,11 @@
 package com.qsr.sdk.config;
 
+import com.alibaba.druid.wall.WallFilter;
 import com.jfinal.config.*;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.plugin.activerecord.IContainerFactory;
 import com.jfinal.plugin.druid.DruidPlugin;
+import com.jfinal.plugin.druid.DruidStatViewHandler;
 import com.qsr.sdk.controller.*;
 import com.qsr.sdk.jfinal.plugin.event.EventPlugin;
 import com.qsr.sdk.startup.Startup;
@@ -61,7 +63,11 @@ public class Config extends JFinalConfig {
 		DruidPlugin druidPlugin = new DruidPlugin(config.get("jdbcUrl"),
 				config.get("user"), config.get("password"),
 				config.get("driverClass"), "stat");
-		me.add(druidPlugin);
+        WallFilter wall = new WallFilter();
+        wall.setDbType("mysql");
+        druidPlugin.addFilter(wall);
+//		druidPlugin.setMinIdle();
+        me.add(druidPlugin);
 
 		ActiveRecordPlugin arp = new ActiveRecordPlugin(druidPlugin);
 		arp.setContainerFactory(new IContainerFactory() {
@@ -101,7 +107,6 @@ public class Config extends JFinalConfig {
 
 	@Override
 	public void configHandler(Handlers me) {
-
 	}
 
 	@Override

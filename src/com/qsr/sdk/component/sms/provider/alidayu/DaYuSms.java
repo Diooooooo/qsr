@@ -33,10 +33,10 @@ public class DaYuSms implements SmsSend {
     public DaYuSms(Provider provider, Map<?, ?> config) {
         this.provider = provider;
         this.config.put("template_code_1","SMS_123668153");
-        this.config.put("template_sign_name_1", "许宝峰");
+        this.config.put("template_sign_name_1", "量球匠");
 
         this.config.put("template_code_2", "SMS_125029719");
-        this.config.put("template_sign_name_2","许宝峰");
+        this.config.put("template_sign_name_2","量球匠");
 
         this.config.put("app_key","LTAIsMJIfy0E1jfH");
         this.config.put("app_secret","qr5Lfhup2XVOctAivpugQAuiw9h9jG");
