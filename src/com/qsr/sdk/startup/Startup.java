@@ -29,8 +29,6 @@ public class Startup {
 	public static void start() {
 
 		try {
-			//			System.setProperty(DebuggingClassWriter.DEBUG_LOCATION_PROPERTY,
-			//					"/skywalker/classes");
 
 			reloadLogConfig();
 			logger.info("startup......");

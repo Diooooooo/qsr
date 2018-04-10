@@ -50,7 +50,7 @@ public abstract class AbstractPayment extends AbstractComponent implements
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.e9w.skywalker.sdk.serviceprovider.payment.IPayment#request(java.lang
+	 * #request(java.lang
 	 * .String, int, java.lang.String, java.util.Map)
 	 */
 	@Override
@@ -76,7 +76,7 @@ public abstract class AbstractPayment extends AbstractComponent implements
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.e9w.skywalker.sdk.serviceprovider.payment.IPayment#payOrder(java.
+	 * #payOrder(java.
 	 * util.Map)
 	 */
 	@Override
@@ -205,7 +205,7 @@ public abstract class AbstractPayment extends AbstractComponent implements
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.e9w.skywalker.sdk.serviceprovider.payment.IPayment#response(java.
+	 * #response(java.
 	 * util.Map)
 	 */
 	@Override
@@ -254,7 +254,7 @@ public abstract class AbstractPayment extends AbstractComponent implements
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.e9w.skywalker.sdk.serviceprovider.payment.IPayment#getPaymentConfig
+	 * #getPaymentConfig
 	 * (java.lang.String, int, java.util.Map)
 	 */
 	@Override
@@ -268,8 +268,7 @@ public abstract class AbstractPayment extends AbstractComponent implements
 	 * (non-Javadoc)
 	 * 
 	 * @see
-	 * com.e9w.skywalker.sdk.serviceprovider.payment.IPayment#getNotifyContent
-	 * (com.e9w.skywalker.sdk.serviceprovider.payment.PaymentResponse)
+	 * #getNotifyContent
 	 */
 	@Override
 	public abstract NotifyContent getNotifyContent(PaymentResponse paymentResult);

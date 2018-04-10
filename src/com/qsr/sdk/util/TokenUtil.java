@@ -6,7 +6,7 @@ import java.util.UUID;
 
 public class TokenUtil {
 
-	private static final byte[] SECRET = "@skywalker".getBytes();
+	private static final byte[] SECRET = "@".getBytes();
 
 	private static final String sp = "/";
 

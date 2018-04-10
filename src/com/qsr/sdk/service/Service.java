@@ -249,11 +249,4 @@ public abstract class Service {
 		return result;
 
 	}
-	protected void publishStats(String code, String text, ContentType contentType, Charset charset, int outTimer) {
-		try {
-			HttpUtil.post("http://polling.19w.me/pub?code=" + code, text, contentType, charset, outTimer);
-		} catch (IOException e) {
-            logger.error("publishStats error. msg={}, exception={}", e.getMessage(), e);
-		}
-	}
 }

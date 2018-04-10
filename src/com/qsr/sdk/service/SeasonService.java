@@ -246,8 +246,8 @@ public class SeasonService extends Service {
             "  ORDER BY s.season_start_play_time ASC";
     private static final String SEASON_FUTURE = "SELECT s.season_fid FROM qsr_team_season s " +
             "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 3 DAY ORDER BY s.season_start_play_time ASC ";
-    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s WHERE s.season_year = DATE(NOW()) ";
-//            + "AND s.season_start_play_time < NOW() - INTERVAL 105 MINUTE AND s.status_id = 3";
+    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s WHERE s.season_year = DATE(NOW()) "
+            + "AND s.season_start_play_time < NOW() - INTERVAL 105 MINUTE AND s.status_id = 3";
 
     /**
      * 根据联赛Id获取赛程

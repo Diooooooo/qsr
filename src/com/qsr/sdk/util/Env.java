@@ -112,7 +112,7 @@ public class Env {
     public static String getHostUrl() {
         if (hostUrl == null) {
             hostUrl = parameter.s("host_url",
-                    "http://xy.skywalker.19where.com/");
+                    "");
         }
         return hostUrl;
     }
@@ -120,7 +120,7 @@ public class Env {
     public static String getSdkHostUrl() {
         if (sdkHostUrl == null) {
             sdkHostUrl = parameter.s("sdk_host_url",
-                    "http://sdk.skywalker.19where.com/");
+                    "");
         }
         return sdkHostUrl;
     }
@@ -128,14 +128,14 @@ public class Env {
     public static String getPlatformHostUrl() {
         if (platformHostUrl == null) {
             platformHostUrl = parameter.s("platform_host_url",
-                    "http://xy.skywalker.19where.com/");
+                    "");
         }
         return platformHostUrl;
     }
 
     public static String getFileCacheDir() {
         if (fileCacheDir == null) {
-            fileCacheDir = parameter.s("file_cache_dir", "/skywalker/appcache");
+            fileCacheDir = parameter.s("file_cache_dir", "/qsr/appcache");
             File file = new File(fileCacheDir);
             if (!file.exists()) {
                 file.mkdirs();
@@ -147,14 +147,14 @@ public class Env {
     public static String getFileStorageUrl() {
         if (fileStorageUrl == null) {
             fileStorageUrl = parameter.s("filestorage_url",
-                    "http://2s.19where.com/");
+                    "");
         }
         return fileStorageUrl;
     }
 
     public static String getQrcodeUrl() {
         if (qrcodeUrl == null) {
-            qrcodeUrl = parameter.s("qrcode_url", "http://q.19w.me/");
+            qrcodeUrl = parameter.s("qrcode_url", "");
         }
         return qrcodeUrl;
     }
@@ -162,7 +162,7 @@ public class Env {
     public static String getDownloadUrl() {
 
         if (downloadUrl == null) {
-            downloadUrl = parameter.s("download_url", "http://19w.me/");
+            downloadUrl = parameter.s("download_url", "");
         }
         return downloadUrl;
     }
@@ -204,7 +204,7 @@ public class Env {
 
     public static String getFileUploadDir() {
         if (fileUploadDir == null) {
-            fileUploadDir = parameter.s("file_upload_dir", "/skywalker/upload");
+            fileUploadDir = parameter.s("file_upload_dir", "/qsr/upload");
             File file = new File(fileUploadDir);
             if (!file.exists()) {
                 file.mkdirs();

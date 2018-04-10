@@ -5,7 +5,6 @@ public class SystemParam {
 
 	//static Map<String, String> map = null;
 
-	//	static final String cacheKey = "com.e9w.skywalker.sdk.tool.SystemParam";
 	//	static final long timeout = 5 * 60;
 	//
 	//	private static synchronized Map<String, String> getParams() {

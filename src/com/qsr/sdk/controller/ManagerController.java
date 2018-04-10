@@ -17,7 +17,7 @@ import java.util.*;
 
 public class ManagerController extends WebApiController {
     private final static Logger logger = LoggerFactory.getLogger(ManagerController.class);
-    private static final List<String> icon = Arrays.asList("icon");
+    private static final List<String> icon = Arrays.asList("file");
     private static final String[] TYPES = {"Admin", "QSR"};
     public ManagerController() {
         super(logger);
@@ -62,44 +62,12 @@ public class ManagerController extends WebApiController {
             String desc = f.s("description");
             boolean enabled = f.b("enabled");
             boolean deleted = f.b("deleted");
-            List<UploadFile> tempFiles = f.getUploadFiles();
-            List<UploadFile> files = new ArrayList<>();
-            for (UploadFile uf: tempFiles) {
-                if (icon.contains(uf.getParameterName())) {
-                    files.add(uf);
-                }
-            }
             logger.debug("addBanner params = {} ", f);
-            FileStorageService fss = this.getService(FileStorageService.class);
-            int[] fileIds = new int[files.size()];
-            int i = 0;
-            uploadFiles(files, fss, fileIds, i, "banners");
             BannerService bannerService = this.getService(BannerService.class);
-//            bannerService.addBanner(title, url, fss.getFileUrl(fileIds[0]), desc, enabled, deleted);
-            bannerService.addBanner(title, url, null, desc, enabled, deleted);
+            bannerService.addBanner(title, url, f.s("icon"), desc, enabled, deleted);
             this.renderData();
         } catch (Throwable t) {
             this.renderException("addBanners was error. exception = {}", t);
-        }
-    }
-
-    public void uploadFiles() {
-        try {
-            Fetcher f = this.fetch();
-            String prex = f.s("prex", StringUtil.EMPTY_STRING);
-            List<UploadFile> temps = f.getUploadFiles();
-            List<UploadFile> ufs = new ArrayList<>();
-            for (UploadFile uf: temps) {
-                if (icon.contains(uf.getParameterName()))
-                    ufs.add(uf);
-            }
-            int[] fileIds = new int[ufs.size()];
-            int i = 0;
-            FileStorageService fss = this.getService(FileStorageService.class);
-//            uploadFiles(ufs, fss, fileIds, i, prex);
-            this.renderData(prex);
-        } catch (Throwable t) {
-            this.renderException("uploadFiles", t);
         }
     }
 
@@ -112,21 +80,9 @@ public class ManagerController extends WebApiController {
             String desc = f.s("description", StringUtil.NULL_STRING);
             boolean enabled = f.b("enabled", true);
             boolean deleted = f.b("deleted", false);
-            List<UploadFile> tempFiles = f.getUploadFiles();
-            List<UploadFile> files = new ArrayList<>();
-            for (UploadFile uf: tempFiles) {
-                if (icon.contains(uf.getParameterName())) {
-                    files.add(uf);
-                }
-            }
-            logger.debug("addBanner params = {} ", f);
-            FileStorageService fss = this.getService(FileStorageService.class);
-            int[] fileIds = new int[files.size()];
-            int i = 0;
-            uploadFiles(files, fss, fileIds, i, "banners");
             logger.debug("modifyBanner params = {}", f);
             BannerService bannerService = this.getService(BannerService.class);
-            bannerService.modifyBanner(bannerid, title, url, null, desc, enabled, deleted);
+            bannerService.modifyBanner(bannerid, title, url, f.s("icon"), desc, enabled, deleted);
             this.renderData();
         } catch (Throwable t) {
             this.renderException("modifyBanner was error. exception = {} ", t);
@@ -203,25 +159,12 @@ public class ManagerController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             logger.debug("addCountry", f);
-            List<UploadFile> temps = f.getUploadFiles();
-            List<UploadFile> ufs = new ArrayList<>();
-            for (UploadFile uf : temps) {
-                if (icon.contains(uf.getParameterName())) {
-                    ufs.add(uf);
-                }
-            }
-            int[] filelds = new int[ufs.size()];
-            int i = 0;
-            FileStorageService fss = this.getService(FileStorageService.class);
-            uploadFiles(ufs, fss, filelds, i, "country");
             String name = f.s("name");
             String en = f.s("en", StringUtil.NULL_STRING);
             String code = f.s("code", StringUtil.NULL_STRING);
             String desc = f.s("desc", StringUtil.NULL_STRING);
             LeagueService leagueService = this.getService(LeagueService.class);
-//            leagueService.addCountry(name, en, code, desc, fss.getFileUrl(filelds[0]));
-            leagueService.addCountry(name, en, code, desc, "http://www.baidu.com/images/ddd.png");
-            this.renderData();
+            leagueService.addCountry(name, en, code, desc, f.s("icon"));
             this.renderData();
         } catch (Throwable t) {
             this.renderException("addCountry", t);
@@ -232,24 +175,13 @@ public class ManagerController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             logger.debug("addCountry", f);
-            List<UploadFile> temps = f.getUploadFiles();
-            List<UploadFile> ufs = new ArrayList<>();
-            for (UploadFile uf : temps) {
-                if (icon.contains(uf.getParameterName())) {
-                    ufs.add(uf);
-                }
-            }
-            int[] filelds = new int[ufs.size()];
-            int i = 0;
-            FileStorageService fss = this.getService(FileStorageService.class);
-            uploadFiles(ufs, fss, filelds, i, "country");
             int id = f.i("id");
             String name = f.s("name", StringUtil.NULL_STRING);
             String en = f.s("en", StringUtil.NULL_STRING);
             String code = f.s("code", StringUtil.NULL_STRING);
             String desc = f.s("desc", StringUtil.NULL_STRING);
             LeagueService leagueService = this.getService(LeagueService.class);
-            leagueService.modifyCountry(name, en, code, desc, ufs.size() > 0 ? fss.getFileUrl(filelds[0]) : StringUtil.NULL_STRING, id);
+            leagueService.modifyCountry(name, en, code, desc, f.s("icon"), id);
             this.renderData();
         } catch (Throwable t) {
             this.renderException("modifyCountry", t);
@@ -484,16 +416,6 @@ public class ManagerController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             logger.debug("addNews params = {} ", f);
-            List<UploadFile> temps = f.getUploadFiles();
-            List<UploadFile> ufs = new ArrayList<>();
-            for (UploadFile up: temps) {
-                if (icon.contains(up.getParameterName()))
-                    ufs.add(up);
-            }
-            FileStorageService fss = this.getService(FileStorageService.class);
-            int[] fileIds = new int[ufs.size()];
-            int i = 0;
-            uploadFiles(temps, fss, fileIds, i, "news");
             int newsId = f.i("newsId");
             String title = f.s("title", StringUtil.NULL_STRING);
             String content = f.s("content", StringUtil.NULL_STRING);
@@ -505,9 +427,7 @@ public class ManagerController extends WebApiController {
             String desc = f.s("desc", StringUtil.NULL_STRING);
             String author = f.s("author");
             NewsService newsService = this.getService(NewsService.class);
-//            newsService.modifyNews(newsId, title, fss.getFileUrl(fileIds[0]), content, detail, tag,
-//                    provenance_url, provenance, author, enabled, desc);
-            newsService.modifyNews(newsId, title, StringUtil.NULL_STRING, content, detail, tag, provenance_url, provenance, author, enabled, desc);
+            newsService.modifyNews(newsId, title, f.s("icon"), content, detail, tag, provenance_url, provenance, author, enabled, desc);
             this.renderData();
         } catch (Throwable t) {
             this.renderException("modifyNews", t);
@@ -518,16 +438,6 @@ public class ManagerController extends WebApiController {
         try {
             Fetcher f = this.fetch();
             logger.debug("addNews params = {} ", f);
-            List<UploadFile> temps = f.getUploadFiles();
-            List<UploadFile> ufs = new ArrayList<>();
-            for (UploadFile up: temps) {
-                if (icon.contains(up.getParameterName()))
-                    ufs.add(up);
-            }
-            FileStorageService fss = this.getService(FileStorageService.class);
-            int[] fileIds = new int[ufs.size()];
-            int i = 0;
-            uploadFiles(temps, fss, fileIds, i, "news");
             String title = f.s("title");
             String content = f.s("content");
             String detail = f.s("detail");
@@ -538,11 +448,30 @@ public class ManagerController extends WebApiController {
             String desc = f.s("desc", StringUtil.NULL_STRING);
             String author = f.s("author");
             NewsService newsService = this.getService(NewsService.class);
-//            newsService.addNews(title, fss.getFileUrl(fileIds[0]), content, detail, tag, provenance_url, provenance, author, enabled, desc);
-            newsService.addNews(title, StringUtil.NULL_STRING, content, detail, tag, provenance_url, provenance, author, enabled, desc);
+            newsService.addNews(title, f.s("icon"), content, detail, tag, provenance_url, provenance, author, enabled, desc);
             this.renderData();
         } catch (Throwable t) {
             this.renderException("addNews", t);
+        }
+    }
+
+    public void pic() {
+        try {
+            Fetcher f = this.fetch();
+            logger.debug("pic params = {}", f);
+            List<UploadFile> temps = f.getUploadFiles();
+            List<UploadFile> ufs = new ArrayList<>();
+            for (UploadFile up: temps) {
+                if (icon.contains(up.getParameterName()))
+                    ufs.add(up);
+            }
+            FileStorageService fss = this.getService(FileStorageService.class);
+            int[] fileIds = new int[ufs.size()];
+            int i = 0;
+            uploadFiles(temps, fss, fileIds, i, "news");
+            this.renderData((Object)fss.getFileUrl(fileIds[0]));
+        } catch (Throwable t) {
+            this.renderException("pic", t);
         }
     }
 
