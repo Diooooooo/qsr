@@ -165,7 +165,7 @@ public class SeasonService extends Service {
             "ORDER BY f.createtime DESC " +
             "LIMIT 5";
     private static final String SELECT_SEASON_PLAYING_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "  WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 105 MINUTE AND NOW() " +
+            "  WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 105 MINUTE AND NOW() + INTERVAL 5 MINUTE " +
             "  AND s.season_year = DATE(NOW())";
     private static final String FROM_SEASON_ALL = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id AND l.enabled = 1 " +
@@ -216,7 +216,7 @@ public class SeasonService extends Service {
     private static final String SELECT_SEASON_ODDS_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
             "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 105 MINUTE ";
     private static final String SELECT_SEASON_PLAN_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time > NOW() + INTERVAL 120 MINUTE ";
+            "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 3 HOUR ";
     private static final String FORCES = "SELECT " +
             "  f.force_id, l.lea_name, a.team_name a_name, b.team_name b_name, s.season_start_play_time play_time, " +
             "  IF(t.type_name ='联赛赛程', '', t.type_name) type_name, " +
@@ -246,8 +246,8 @@ public class SeasonService extends Service {
             "  ORDER BY s.season_start_play_time ASC";
     private static final String SEASON_FUTURE = "SELECT s.season_fid FROM qsr_team_season s " +
             "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 3 DAY ORDER BY s.season_start_play_time ASC ";
-    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s WHERE s.season_year = DATE(NOW()) " +
-            "AND s.season_start_play_time < NOW() - INTERVAL 105 MINUTE AND s.status_id = 3";
+    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s WHERE s.season_year = DATE(NOW()) ";
+//            + "AND s.season_start_play_time < NOW() - INTERVAL 105 MINUTE AND s.status_id = 3";
 
     /**
      * 根据联赛Id获取赛程

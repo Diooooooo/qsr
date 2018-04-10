@@ -25,7 +25,7 @@ public class MessageService extends Service {
             "            AND (s.chatroom_id = 0 OR s.self_chatroom_id = 0)";
     private static final String MODIFY_CHATROOM = "UPDATE qsr_team_season s SET s.chatroom_id = ? WHERE s.season_id = ?";
     private static final String MODIFY_SELF_CHATROOM = "UPDATE qsr_team_season s SET s.self_chatroom_id = ? WHERE s.season_id = ?";
-    private static final String DELETE_CHATROOM = "UPDATE qsr_team_season s SET s.self_chatroom_id = -1, s.chatroom_id = -1 WHERE s.season_id = ?";
+    private static final String DELETE_CHATROOM = "UPDATE qsr_team_season s SET s.self_chatroom_id = 0, s.chatroom_id = 0 WHERE s.season_id = ?";
     private static final String SELECT_DELETE_ROOMS = "SELECT s.season_id, s.self_chatroom_id, s.chatroom_id " +
             "            FROM qsr_team_season s " +
             "            WHERE s.status_id = 3 " +

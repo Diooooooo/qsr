@@ -24,6 +24,9 @@ public class InternalController extends WebApiController {
         super(logger);
     }
 
+    /**
+     * 进行中
+     */
     public void getPlayingSeason() {
         try {
             Fetcher f = this.fetch();
@@ -39,6 +42,9 @@ public class InternalController extends WebApiController {
         }
     }
 
+    /**
+     * 完场
+     */
     public void getOldSeason() {
         try {
             Fetcher f = this.fetch();
@@ -54,6 +60,10 @@ public class InternalController extends WebApiController {
         }
     }
 
+
+    /**
+     * 盘口，赔率，大小球
+     */
     public void getFutureSeason() {
         try {
             Fetcher f = this.fetch();
