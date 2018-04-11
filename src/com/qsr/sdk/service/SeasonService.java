@@ -165,7 +165,8 @@ public class SeasonService extends Service {
             "ORDER BY f.createtime DESC " +
             "LIMIT 5";
     private static final String SELECT_SEASON_PLAYING_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "  WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 105 MINUTE AND NOW() + INTERVAL 5 MINUTE " +
+            "  INNER JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1 " +
+            "  WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 130 MINUTE AND NOW() + INTERVAL 30 MINUTE " +
             "  AND s.season_year = DATE(NOW())";
     private static final String FROM_SEASON_ALL = "FROM qsr_team_season ts " +
             "  INNER JOIN qsr_league l ON ts.lea_id = l.lea_id AND l.enabled = 1 " +
@@ -214,8 +215,10 @@ public class SeasonService extends Service {
             "AND ts.season_start_play_time > NOW() " +
             "ORDER BY ts.season_start_play_time ASC, ts.season_gameweek ASC LIMIT ?";
     private static final String SELECT_SEASON_ODDS_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
-            "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 105 MINUTE ";
+            "INNER JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1 " +
+            "WHERE s.season_start_play_time BETWEEN NOW() - INTERVAL 130 MINUTE AND NOW() ";
     private static final String SELECT_SEASON_PLAN_SEASON = "SELECT s.season_fid FROM qsr_team_season s " +
+            "INNER JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1 " +
             "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 3 HOUR ";
     private static final String FORCES = "SELECT " +
             "  f.force_id, l.lea_name, a.team_name a_name, b.team_name b_name, s.season_start_play_time play_time, " +
@@ -245,9 +248,11 @@ public class SeasonService extends Service {
             "  AND s.status_id IN (1, 5, 6) " +
             "  ORDER BY s.season_start_play_time ASC";
     private static final String SEASON_FUTURE = "SELECT s.season_fid FROM qsr_team_season s " +
+            "INNER JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1 " +
             "WHERE s.season_start_play_time BETWEEN NOW() AND NOW() + INTERVAL 3 DAY ORDER BY s.season_start_play_time ASC ";
-    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s WHERE s.season_year = DATE(NOW()) "
-            + "AND s.season_start_play_time < NOW() - INTERVAL 105 MINUTE AND s.status_id = 3";
+    private static final String SEASON_OLD = "SELECT s.season_fid FROM qsr_team_season s " +
+            "  INNER JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1 " +
+            "  WHERE s.season_year = DATE(NOW()) AND s.season_start_play_time < NOW() - INTERVAL 130 MINUTE AND s.status_id = 3";
 
     /**
      * 根据联赛Id获取赛程

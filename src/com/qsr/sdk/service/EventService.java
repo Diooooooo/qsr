@@ -25,7 +25,7 @@ public class EventService extends Service {
             "LEFT JOIN qsr_team b ON b.team_id = s.season_team_b " +
             "LEFT JOIN qsr_team_sportsman ts ON ts.sports_id = t.sportsman_id_in " +
             "LEFT JOIN qsr_team_sportsman tsb ON tsb.sports_id = t.sportsman_id_out " +
-            "WHERE t.season_id = ? " +
+            "WHERE t.season_id = ? AND t.enabled = 1 " +
             "ORDER BY t.start_time DESC";
 
     public List<Map<String, Object>> getEvents(int seasonId) throws ServiceException {

@@ -18,6 +18,7 @@ public class MessageService extends Service {
     private static final String SELECT_WAITING_ROOMS = "SELECT s.season_id, " +
             "            CONCAT(s.season_start_play_time, '-', a.team_name, ' VS ', b.team_name) AS room_name, s.self_chatroom_id, s.chatroom_id " +
             "            FROM qsr_team_season s  " +
+            "            INNER JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1" +
             "            INNER JOIN qsr_team a ON s.season_team_a = a.team_id " +
             "            INNER JOIN qsr_team b ON s.season_team_b = b.team_id " +
             "            WHERE s.status_id IN(1, 3, 5, 6) " +
@@ -28,9 +29,9 @@ public class MessageService extends Service {
     private static final String DELETE_CHATROOM = "UPDATE qsr_team_season s SET s.self_chatroom_id = 0, s.chatroom_id = 0 WHERE s.season_id = ?";
     private static final String SELECT_DELETE_ROOMS = "SELECT s.season_id, s.self_chatroom_id, s.chatroom_id " +
             "            FROM qsr_team_season s " +
-            "            WHERE s.status_id = 3 " +
-            "            AND s.season_start_play_time < NOW() " +
-            "            AND (s.chatroom_id != 0 OR s.self_chatroom_id != 0) AND (s.chatroom_id != -1 OR s.self_chatroom_id != -1)";
+            "            INNER JOIN qsr_league l ON s.lea_id = l.lea_id AND l.enabled = 1" +
+            "            WHERE s.status_id = 4 " +
+            "            AND s.season_start_play_time < NOW() AND (s.chatroom_id != 0 OR s.self_chatroom_id != 0) ";
 
     @Deprecated
     public void sendMessage(String fromTo, String sendTo, String message, int type) throws ServiceException {
