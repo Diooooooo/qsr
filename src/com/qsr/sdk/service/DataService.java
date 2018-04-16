@@ -31,7 +31,7 @@ public class DataService extends Service {
             "  INNER JOIN qsr_team t ON i.team_id = t.team_id " +
             "  INNER JOIN qsr_team_season_ranking_list_type lt ON i.type_id = lt.type_id " +
             "  INNER JOIN qsr_team_season_ranking_list_group g ON g.group_id = lt.group_id " +
-            "WHERE i.league_id = ? AND g.group_id = ? AND YEAR(i.league_year) = YEAR(STR_TO_DATE(?, '%Y')) " +
+            "WHERE i.league_id = ? AND g.group_id = ? AND i.type_id = 1 AND YEAR(i.league_year) = YEAR(STR_TO_DATE(?, '%Y')) " +
             "ORDER BY i.item_source DESC;";
     private final static String RANKING_TYPE = "SELECT t.type_name, t.type_id " +
             "FROM qsr_team_season_ranking_list_type t " +
